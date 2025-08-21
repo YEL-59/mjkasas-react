@@ -1,29 +1,4 @@
-// import { createBrowserRouter } from 'react-router-dom';
 
-// import DashboardLayout from './../layout/DashboardLayout';
-// import Alumni from '../pages/admin/Alumni';
-// import Impression from '../pages/admin/Impression';
-// import Message from '../pages/admin/Message';
-// import Scheduled from '../pages/admin/Scheduled';
-// import DashboardHome from '../pages/admin/DashboardHome';
-// import SignIn from '../pages/auth/SignIn';
-// import AuthLayout from '../layout/AuthLayout';
-// import NotFound from '@/pages/admin/NotFound';
-// import AiNudges from '@/pages/admin/AiNudges';
-// import RiskAlerts from '@/pages/admin/RiskAlerts';
-// import Students from '@/pages/admin/Students';
-// import StudentProfile from '@/pages/admin/StudentProfile';
-// import SignUp from '@/pages/auth/SignUp';
-// import ForgotPassword from '@/pages/auth/ForgotPassword';
-// import EmployerDashboard from '@/layout/EmployerDashboard';
-// import Messages from '@/pages/employer/Messages';
-// import AllApplicants from '@/pages/employer/AllApplicants';
-// import JobListing from '@/pages/employer/JobListing';
-// import Talentful from '@/pages/employer/Talentful';
-// import Calendar from '@/pages/employer/Calendar';
-// import EmployerHome from '@/pages/employer/EmployerHome';
-// import ApplicantProfile from '@/pages/employer/ApplicantProfile';
-// import CreateJob from '@/pages/employer/CreateJob';
 // const router = createBrowserRouter([
 //     {
 //         path: '/',
@@ -145,11 +120,33 @@
 
 
 
+import AuthLayout from '@/layout/AuthLayout';
 import Layout from '@/layout/layout';
+import ForgotPassword from '@/pages/Auth/ForgotPassword';
+import SignIn from '@/pages/Auth/SignIn';
+import SignUp from '@/pages/Auth/SignUp';
 import Home from '@/pages/main/Home';
 import { createBrowserRouter } from 'react-router-dom';
 
 const router = createBrowserRouter([
+     {
+         path: '/',
+         element: <AuthLayout />,
+         children: [
+           {
+             path: '/sign-in',
+             element: <SignIn />,
+           },
+           {
+             path: '/sign-up',
+             element: <SignUp />,
+           },
+           {
+             path: '/forgot-password',
+             element: <ForgotPassword />,
+           },
+         ],
+       },
   {
     path: '/',
     element: <Layout />,
