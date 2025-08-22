@@ -121,14 +121,14 @@
 
 
 import AuthLayout from '@/layout/AuthLayout';
-import Layout from '@/layout/layout';
+import Layout from '@/layout/ManagerLayout';
 import ForgotPassword from '@/pages/Auth/ForgotPassword';
 import OtpVerification from '@/pages/Auth/OtpVerification';
 import SetPassword from '@/pages/Auth/SetPassword';
 import SignIn from '@/pages/Auth/SignIn';
 import SignUp from '@/pages/Auth/SignUp';
 import Success from '@/pages/Auth/Success';
-import Home from '@/pages/main/Home';
+import Home from '@/pages/ManagerDashboard/Home';
 import { createBrowserRouter } from 'react-router-dom';
 
 const router = createBrowserRouter([
