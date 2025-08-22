@@ -123,8 +123,11 @@
 import AuthLayout from '@/layout/AuthLayout';
 import Layout from '@/layout/layout';
 import ForgotPassword from '@/pages/Auth/ForgotPassword';
+import OtpVerification from '@/pages/Auth/OtpVerification';
+import SetPassword from '@/pages/Auth/SetPassword';
 import SignIn from '@/pages/Auth/SignIn';
 import SignUp from '@/pages/Auth/SignUp';
+import Success from '@/pages/Auth/Success';
 import Home from '@/pages/main/Home';
 import { createBrowserRouter } from 'react-router-dom';
 
@@ -144,6 +147,18 @@ const router = createBrowserRouter([
            {
              path: '/forgot-password',
              element: <ForgotPassword />,
+           },
+           {
+             path: '/set-password',
+             element: <SetPassword/>,
+           },
+           {
+             path: '/otp-verification',
+             element: <OtpVerification />,
+           },
+           {
+             path: '/success',
+             element: <Success />,
            },
          ],
        },

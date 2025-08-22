@@ -29,7 +29,7 @@ const SignUp = () => {
       </div>
 
       {/* Main Content (flex-grow so it takes remaining space) */}
-      <div className="flex flex-1 items-center justify-center pt-4">
+      <div className="flex flex-1 items-center justify-center pt-4 px-3">
         {/* Card */}
         <div className="relative z-10 w-full max-w-md rounded-[12px] bg-[#FFF] [box-shadow:3px_-3px_4px_0_rgba(0,_0,_0,_0.25),_-3px_4px_4px_0_rgba(0,_0,_0,_0.25)] p-6 sm:p-10 md:p-12">
           {/* Title */}
