@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import logo from '../../assets/images/logo.png';
 import AuthbottomBg from '../../assets/images/authBottomBg.png';
+import { Link } from 'react-router';
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,7 +11,7 @@ const SignUp = () => {
   return (
     <div className="relative min-h-screen bg-gray-50 flex flex-col">
       {/* Background Shape */}
-      <div className="absolute bottom-0 left-0 right-0">
+      <div className="absolute bottom-0 left-0 right-0 max-h-[556px]">
         <img
           src={AuthbottomBg}
           alt="bottom-bg"
@@ -23,12 +24,12 @@ const SignUp = () => {
         <img
           src={logo}
           alt="logo"
-          className="w-[239.681px] h-[47px] flex-shrink-0"
+          className="mx-auto sm:mx-1 w-[209.681px] h-[40px] sm:w-[239.681px] sm:h-[47px] flex-shrink-0"
         />
       </div>
 
       {/* Main Content (flex-grow so it takes remaining space) */}
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center pt-4">
         {/* Card */}
         <div className="relative z-10 w-full max-w-md rounded-[12px] bg-[#FFF] [box-shadow:3px_-3px_4px_0_rgba(0,_0,_0,_0.25),_-3px_4px_4px_0_rgba(0,_0,_0,_0.25)] p-6 sm:p-10 md:p-12">
           {/* Title */}
@@ -63,7 +64,7 @@ const SignUp = () => {
               <input
                 type="text"
                 placeholder="Enter your full name"
-                className="w-full px-4 py-2 rounded-[12px] border border-[#D9D9D9] focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
             </div>
 
@@ -75,7 +76,7 @@ const SignUp = () => {
               <input
                 type="email"
                 placeholder="Enter your email address"
-                className="w-full px-4 py-2 rounded-[12px] border border-[#D9D9D9] focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
             </div>
 
@@ -88,7 +89,7 @@ const SignUp = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter password"
-                  className="w-full px-4 py-2 rounded-[12px] border border-[#D9D9D9] focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
                 <button
                   type="button"
@@ -109,7 +110,7 @@ const SignUp = () => {
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Retype password"
-                  className="w-full px-4 py-2 rounded-[12px] border border-[#D9D9D9] focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
                 <button
                   type="button"
@@ -126,17 +127,20 @@ const SignUp = () => {
             </div>
 
             {/* Submit */}
-            <button className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-900">
+            <button className="w-full mt-10 bg-black text-[#FFF] font-[Poppins] text-[15px] md:text-[16px] not-italic font-semibold leading-[24px] py-2 rounded-md hover:bg-gray-900 cursor-pointer">
               Sign Up
             </button>
           </form>
 
           {/* Login Link */}
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-4 text-[#121212] text-center font-[Poppins] text-[15px] md:text-[16px] not-italic font-normal leading-[normal]">
             Already have an account?{' '}
-            <a href="#" className="text-orange-500 hover:underline">
+            <Link
+              to="/sign-in"
+              className="text-[#121212] font-[Poppins] text-[16px] not-italic font-semibold leading-[normal] [text-decoration-line:underline] [text-decoration-style:solid] [text-decoration-skip-ink:none] [text-underline-offset:auto] [text-underline-position:from-font] hover:underline"
+            >
               Log in
-            </a>
+            </Link>
           </p>
         </div>
       </div>
