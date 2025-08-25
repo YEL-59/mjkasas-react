@@ -8,6 +8,7 @@ import SignIn from '@/pages/Auth/SignIn';
 import SignUp from '@/pages/Auth/SignUp';
 import Success from '@/pages/Auth/Success';
 import ManagerHome from '@/pages/ManagerDashboard/home';
+import CreateWorkOrder from '@/pages/ManagerDashboard/CreateWorkOrder';
 import TechnicianHome from '@/pages/TechnicianDashboard/Home';
 import { createBrowserRouter } from 'react-router-dom';
 
@@ -52,6 +53,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <ManagerHome />,
+      },
+      {
+        path: 'create-work-order',
+        element: <CreateWorkOrder />,
       },
       // Add more manager routes here
       // {

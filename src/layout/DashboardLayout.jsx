@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -20,6 +20,7 @@ import logo from '@/assets/images/logo.png';
 
 const DashboardLayout = ({ userType = 'manager' }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const navigate = useNavigate();
 
     const navigationItems = [
         { name: 'Dashboard', icon: Home, href: '#', active: true },
@@ -31,8 +32,12 @@ const DashboardLayout = ({ userType = 'manager' }) => {
         { name: 'Settings', icon: Settings, href: '#' },
     ];
 
+    const handleCreateWorkOrder = () => {
+        navigate('/manager/create-work-order');
+    };
+
     const SidebarContent = () => (
-        <div className="w-64 bg-white shadow-lg h-full flex flex-col">
+        <div className="w-64 bg-white shadow-lg h-screen flex flex-col">
             {/* Logo */}
             <div className="p-6 border-b">
                 <div className="flex items-center space-x-2">
@@ -50,8 +55,8 @@ const DashboardLayout = ({ userType = 'manager' }) => {
                                 key={item.name}
                                 href={item.href}
                                 className={`flex items-center px-4 py-3 rounded-lg transition-colors ${item.active
-                                        ? 'bg-blue-50 text-gray-900 border-l-4 border-purple-500'
-                                        : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-blue-50 text-gray-900 border-l-4 border-purple-500'
+                                    : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                             >
                                 <Icon className="h-5 w-5 mr-3" />
@@ -78,7 +83,7 @@ const DashboardLayout = ({ userType = 'manager' }) => {
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden">
             {/* Desktop Sidebar */}
-            <div className="hidden lg:block h-full">
+            <div className="hidden lg:block">
                 <SidebarContent />
             </div>
 
@@ -135,7 +140,10 @@ const DashboardLayout = ({ userType = 'manager' }) => {
                                 </div>
                             </div>
 
-                            <Button className="bg-[#717171] hover:bg-[#5a5a5a] text-white px-3 lg:px-4 py-2 rounded-lg flex items-center space-x-2">
+                            <Button
+                                onClick={handleCreateWorkOrder}
+                                className="bg-[#717171] hover:bg-[#5a5a5a] text-white px-3 lg:px-4 py-2 rounded-lg flex items-center space-x-2"
+                            >
                                 <Plus className="h-4 w-4" />
                                 <span className="hidden sm:inline">Create work order</span>
                                 <span className="sm:hidden">Create</span>
