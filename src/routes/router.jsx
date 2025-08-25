@@ -9,11 +9,18 @@ import SignUp from '@/pages/Auth/SignUp';
 import Success from '@/pages/Auth/Success';
 import ManagerHome from '@/pages/ManagerDashboard/home';
 import CreateWorkOrder from '@/pages/ManagerDashboard/CreateWorkOrder';
+import WorkOrder from '@/pages/ManagerDashboard/work-order';
+import WorkOrderDetailsPage from '@/pages/ManagerDashboard/work-order/WorkOrderDetailsPage';
 import TechnicianHome from '@/pages/TechnicianDashboard/Home';
+import NotFound from '@/components/NotFound';
 import { createBrowserRouter } from 'react-router-dom';
 
+// ============================================================================
+// MAIN ROUTER CONFIGURATION
+// ============================================================================
+
 const router = createBrowserRouter([
-  // Auth Routes
+  // Authentication Routes
   {
     path: '/auth',
     element: <AuthLayout />,
@@ -47,7 +54,7 @@ const router = createBrowserRouter([
 
   // Manager Dashboard Routes
   {
-    path: '/manager',
+    path: '/',
     element: <DashboardLayout userType="manager" />,
     children: [
       {
@@ -55,18 +62,41 @@ const router = createBrowserRouter([
         element: <ManagerHome />,
       },
       {
-        path: 'create-work-order',
+        path: 'manager',
+        element: <ManagerHome />,
+      },
+      {
+        path: 'manager/create-work-order',
         element: <CreateWorkOrder />,
       },
-      // Add more manager routes here
-      // {
-      //   path: 'work-orders',
-      //   element: <ManagerWorkOrders />,
-      // },
-      // {
-      //   path: 'employees',
-      //   element: <ManagerEmployees />,
-      // },
+      {
+        path: 'work-order',
+        element: <WorkOrder />,
+      },
+      {
+        path: 'work-order/:id',
+        element: <WorkOrderDetailsPage />,
+      },
+      {
+        path: 'completed-orders',
+        element: <NotFound />,
+      },
+      {
+        path: 'buildings',
+        element: <NotFound />,
+      },
+      {
+        path: 'employees',
+        element: <NotFound />,
+      },
+      {
+        path: 'inspection',
+        element: <NotFound />,
+      },
+      {
+        path: 'settings',
+        element: <NotFound />,
+      },
     ],
   },
 
@@ -79,28 +109,13 @@ const router = createBrowserRouter([
         index: true,
         element: <TechnicianHome />,
       },
-      // Add more technician routes here
-      // {
-      //   path: 'my-tasks',
-      //   element: <TechnicianTasks />,
-      // },
-      // {
-      //   path: 'schedule',
-      //   element: <TechnicianSchedule />,
-      // },
     ],
   },
 
-  // Default redirect to manager dashboard
+  // 404 Not Found Route
   {
-    path: '/',
-    element: <DashboardLayout userType="manager" />,
-    children: [
-      {
-        index: true,
-        element: <ManagerHome />,
-      },
-    ],
+    path: '*',
+    element: <NotFound />,
   },
 ]);
 

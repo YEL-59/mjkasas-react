@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -21,15 +21,16 @@ import logo from '@/assets/images/logo.png';
 const DashboardLayout = ({ userType = 'manager' }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
 
     const navigationItems = [
-        { name: 'Dashboard', icon: Home, href: '#', active: true },
-        { name: 'Work Order', icon: ClipboardList, href: '#' },
-        { name: 'Completed Orders', icon: CheckCircle, href: '#' },
-        { name: 'Buildings', icon: Building2, href: '#' },
-        { name: 'Employees', icon: Users, href: '#' },
-        { name: 'Inspection', icon: Search, href: '#' },
-        { name: 'Settings', icon: Settings, href: '#' },
+        { name: 'Dashboard', icon: Home, href: '/' },
+        { name: 'Work Order', icon: ClipboardList, href: '/work-order' },
+        { name: 'Completed Orders', icon: CheckCircle, href: '/completed-orders' },
+        { name: 'Buildings', icon: Building2, href: '/buildings' },
+        { name: 'Employees', icon: Users, href: '/employees' },
+        { name: 'Inspection', icon: Search, href: '/inspection' },
+        { name: 'Settings', icon: Settings, href: '/settings' },
     ];
 
     const handleCreateWorkOrder = () => {
@@ -50,18 +51,38 @@ const DashboardLayout = ({ userType = 'manager' }) => {
                 <div className="space-y-2">
                     {navigationItems.map((item) => {
                         const Icon = item.icon;
+                        let isActive = false;
+
+                        if (item.href === '/') {
+                            isActive = location.pathname === '/';
+                        } else if (item.href === '/work-order') {
+                            isActive = location.pathname === '/work-order';
+                        } else if (item.href === '/completed-orders') {
+                            isActive = location.pathname === '/completed-orders';
+                        } else if (item.href === '/buildings') {
+                            isActive = location.pathname === '/buildings';
+                        } else if (item.href === '/employees') {
+                            isActive = location.pathname === '/employees';
+                        } else if (item.href === '/inspection') {
+                            isActive = location.pathname === '/inspection';
+                        } else if (item.href === '/settings') {
+                            isActive = location.pathname === '/settings';
+                        } else {
+                            isActive = location.pathname === item.href;
+                        }
+
                         return (
-                            <a
+                            <Link
                                 key={item.name}
-                                href={item.href}
-                                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${item.active
+                                to={item.href}
+                                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${isActive
                                     ? 'bg-blue-50 text-gray-900 border-l-4 border-purple-500'
                                     : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                             >
                                 <Icon className="h-5 w-5 mr-3" />
                                 <span className="font-medium">{item.name}</span>
-                            </a>
+                            </Link>
                         );
                     })}
                 </div>
