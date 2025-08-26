@@ -14,6 +14,8 @@ import WorkOrderDetailsPage from '@/pages/ManagerDashboard/work-order/WorkOrderD
 import TechnicianHome from '@/pages/TechnicianDashboard/Home';
 import NotFound from '@/components/NotFound';
 import { createBrowserRouter } from 'react-router-dom';
+import CompleteOrder from '@/pages/ManagerDashboard/complete-order';
+import CompleteOrderDetailsPage from '@/pages/ManagerDashboard/complete-order/CompleteOrderDetailsPage';
 
 // ============================================================================
 // MAIN ROUTER CONFIGURATION
@@ -79,7 +81,11 @@ const router = createBrowserRouter([
       },
       {
         path: 'completed-orders',
-        element: <NotFound />,
+        element: <CompleteOrder />,
+      },
+      {
+        path: 'completed-orders/:id',
+        element: <CompleteOrderDetailsPage />,
       },
       {
         path: 'buildings',
