@@ -16,6 +16,8 @@ import NotFound from '@/components/NotFound';
 import { createBrowserRouter } from 'react-router-dom';
 import CompleteOrder from '@/pages/ManagerDashboard/complete-order';
 import CompleteOrderDetailsPage from '@/pages/ManagerDashboard/complete-order/CompleteOrderDetailsPage';
+import BuildingOrder from '@/pages/ManagerDashboard/building-order';
+import AddBuilding from '@/pages/ManagerDashboard/building-order/AddBuilding';
 
 // ============================================================================
 // MAIN ROUTER CONFIGURATION
@@ -89,7 +91,11 @@ const router = createBrowserRouter([
       },
       {
         path: 'buildings',
-        element: <NotFound />,
+        element: <BuildingOrder />,
+      },
+      {
+        path: 'buildings/add',
+        element: <AddBuilding />,
       },
       {
         path: 'employees',
