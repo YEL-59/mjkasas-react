@@ -30,10 +30,11 @@ const workOrderSchema = z.object({
     priority: z.enum(['normal', 'urgent']),
     orderType: z.enum(['billable', 'non-billable']),
     recurringWorkOrder: z.boolean(),
+    frequency: z.string().optional(),
     recurringOptions: z.object({
+        twoWeeks: z.boolean(),
         oneWeek: z.boolean(),
-        oneMonth: z.boolean(),
-        threeMonths: z.boolean(),
+        sixHours: z.boolean(),
     }).optional(),
     beforePhotos: z.array(z.object({
         file: z.any(),
@@ -105,7 +106,7 @@ export default function CreateWorkOrder() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Recurring Work Order Section */}
-                <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="bg-gray-50 p-4 rounded-lg min-h-[120px] transition-all duration-300 ease-in-out">
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900">Recurring Work Order</h3>
@@ -120,8 +121,33 @@ export default function CreateWorkOrder() {
                         />
                     </div>
 
-                    {isRecurring && (
-                        <div className="mt-4 space-y-2">
+                    <div className={`mt-4 space-y-4 transition-all duration-300 ease-in-out ${isRecurring ? 'opacity-100 max-h-[300px]' : 'opacity-0 max-h-0 overflow-hidden'}`}>
+                        <div>
+                            <Label className="text-gray-700 font-medium">Frequency</Label>
+                            <Select onValueChange={(value) => setValue('frequency', value)}>
+                                <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="Select job type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="weekly">Weekly</SelectItem>
+                                    <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                                    <SelectItem value="monthly">Monthly</SelectItem>
+                                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                                    <SelectItem value="yearly">Yearly</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="flex flex-wrap gap-4">
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    id="twoWeeks"
+                                    {...register('recurringOptions.twoWeeks')}
+                                    className="rounded border-gray-300"
+                                />
+                                <Label htmlFor="twoWeeks" className="text-gray-700">2 weeks before due date</Label>
+                            </div>
                             <div className="flex items-center space-x-2">
                                 <input
                                     type="checkbox"
@@ -129,28 +155,19 @@ export default function CreateWorkOrder() {
                                     {...register('recurringOptions.oneWeek')}
                                     className="rounded border-gray-300"
                                 />
-                                <Label htmlFor="oneWeek">1 week before due date</Label>
+                                <Label htmlFor="oneWeek" className="text-gray-700">1 week before due date</Label>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <input
                                     type="checkbox"
-                                    id="oneMonth"
-                                    {...register('recurringOptions.oneMonth')}
+                                    id="sixHours"
+                                    {...register('recurringOptions.sixHours')}
                                     className="rounded border-gray-300"
                                 />
-                                <Label htmlFor="oneMonth">1 month before due date</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    id="threeMonths"
-                                    {...register('recurringOptions.threeMonths')}
-                                    className="rounded border-gray-300"
-                                />
-                                <Label htmlFor="threeMonths">3 months before due date</Label>
+                                <Label htmlFor="sixHours" className="text-gray-700">6 hours before due date</Label>
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 {/* Basic Information */}
