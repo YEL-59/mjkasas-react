@@ -26,6 +26,7 @@ import {
   LogOut,
   MoreVertical,
   User,
+  Eye,
 } from "lucide-react";
 import logo from "@/assets/images/logo.png";
 
@@ -82,7 +83,7 @@ const DashboardLayout = ({ userType = "manager" }) => {
     { name: "Completed Orders", icon: CheckCircle, href: "/completed-orders" },
     { name: "Buildings", icon: Building2, href: "/buildings" },
     { name: "Employees", icon: Users, href: "/employees" },
-    { name: "Inspection", icon: Search, href: "/inspection" },
+    { name: "Inspection", icon: Eye, href: "/inspection" },
     { name: "Settings", icon: Settings, href: "/settings" },
   ];
 
@@ -253,6 +254,15 @@ const DashboardLayout = ({ userType = "manager" }) => {
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              {/* Create Inspection Button */}
+              <Button
+                onClick={() => navigate('/inspection/create')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Create Inspection</span>
+              </Button>
 
               {/* User Profile Section */}
               <div className="hidden sm:flex items-center space-x-3">

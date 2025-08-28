@@ -18,6 +18,11 @@ import CompleteOrder from '@/pages/ManagerDashboard/complete-order';
 import CompleteOrderDetailsPage from '@/pages/ManagerDashboard/complete-order/CompleteOrderDetailsPage';
 import BuildingOrder from '@/pages/ManagerDashboard/building-order';
 import AddBuilding from '@/pages/ManagerDashboard/building-order/AddBuilding';
+import Employee from '@/pages/ManagerDashboard/emplyee';
+import Inspection from '@/pages/ManagerDashboard/insfictions';
+import InspectionDetailsPage from '@/pages/ManagerDashboard/insfictions/InspectionDetailsPage';
+import CreateInspection from '@/pages/ManagerDashboard/insfictions/CreateInspection';
+import Settings from '@/pages/ManagerDashboard/settings';
 
 // ============================================================================
 // MAIN ROUTER CONFIGURATION
@@ -99,15 +104,23 @@ const router = createBrowserRouter([
       },
       {
         path: 'employees',
-        element: <NotFound />,
+        element: <Employee />,
       },
       {
         path: 'inspection',
-        element: <NotFound />,
+        element: <Inspection />,
+      },
+      {
+        path: 'inspection/create',
+        element: <CreateInspection />,
+      },
+      {
+        path: 'inspection/:id',
+        element: <InspectionDetailsPage />,
       },
       {
         path: 'settings',
-        element: <NotFound />,
+        element: <Settings />,
       },
     ],
   },
