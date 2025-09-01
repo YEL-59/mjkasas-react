@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { ChevronDown } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const WorkOrderActivity = () => {
     const [activeTab, setActiveTab] = useState('Revenue');
@@ -117,12 +118,12 @@ const WorkOrderActivity = () => {
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm border">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Work order activity</h2>
+                <h2 className="text-2xl font-medium text-gray-900">Work order activity</h2>
                 <div className="relative">
                     <select
                         value={timeframe}
                         onChange={(e) => setTimeframe(e.target.value)}
-                        className="appearance-none bg-gray-100 border-0 rounded-lg pl-8 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="appearance-none bg-white border rounded-lg pl-8 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option>Yearly</option>
                         <option>Monthly</option>
@@ -133,22 +134,13 @@ const WorkOrderActivity = () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex mb-6 ">
-                {['Revenue', 'Orders', 'Products'].map((tab, index) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`px-6 py-3 text-sm font-medium transition-colors ${activeTab === tab
-                            ? 'bg-white text-gray-900 border-r border-gray-200'
-                            : 'bg-gray-50 text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                            } ${index === 0 ? 'rounded-tl-lg' : ''
-                            } ${index === 2 ? 'rounded-tr-lg' : ''
-                            }`}
-                    >
-                        {tab}
-                    </button>
-                ))}
-            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-md">
+                <TabsList className="grid w-full grid-cols-3 mb-6 ">
+                    <TabsTrigger value="Revenue" >Revenue</TabsTrigger>
+                    <TabsTrigger value="Orders">Orders</TabsTrigger>
+                    <TabsTrigger value="Products">Products</TabsTrigger>
+                </TabsList>
+            </Tabs>
 
             {/* Chart */}
             <div className="h-64">

@@ -7,40 +7,24 @@ const UpcomingDeadlines = () => {
             location: 'Main Office Building',
             date: '2024-02-15',
             assignee: 'Mike Davis',
-            priority: 'high',
-            borderColor: 'border-red-500',
-            bgColor: 'bg-red-50',
-            textColor: 'text-red-600',
         },
         {
             title: 'Office Deep Cleaning',
             location: 'Main Office Building',
             date: '2024-02-10',
             assignee: 'Lisa Brown',
-            priority: 'medium',
-            borderColor: 'border-yellow-500',
-            bgColor: 'bg-yellow-50',
-            textColor: 'text-yellow-600',
         },
         {
-            title: 'Office Deep Cleaning',
-            location: 'Main Office Building',
-            date: '2024-02-10',
-            assignee: 'Lisa Brown',
-            priority: 'medium',
-            borderColor: 'border-yellow-500',
-            bgColor: 'bg-yellow-50',
-            textColor: 'text-yellow-600',
+            title: 'Security System Check',
+            location: 'Warehouse A',
+            date: '2024-02-12',
+            assignee: 'John Smith',
         },
         {
-            title: 'Office Deep Cleaning',
-            location: 'Main Office Building',
-            date: '2024-02-10',
-            assignee: 'Lisa Brown',
-            priority: 'medium',
-            borderColor: 'border-yellow-500',
-            bgColor: 'bg-yellow-50',
-            textColor: 'text-yellow-600',
+            title: 'Fire Safety Inspection',
+            location: 'Building C',
+            date: '2024-02-18',
+            assignee: 'Sarah Wilson',
         },
     ];
 
@@ -51,13 +35,19 @@ const UpcomingDeadlines = () => {
                 {deadlines.map((deadline, index) => (
                     <div
                         key={index}
-                        className={`p-3 border-l-4 ${deadline.borderColor} ${deadline.bgColor} rounded-r-lg`}
+                        className="bg-[#F9FAFB] p-4 rounded-lg shadow-lg  flex items-center justify-between"
+                        style={{ boxShadow: '0 4px 30px 0 rgba(26, 28, 33, 0.05)' }}
                     >
-                        <p className="text-sm font-medium text-gray-900">{deadline.title}</p>
-                        <p className="text-xs text-gray-600">{deadline.location}</p>
-                        <div className="flex items-center justify-between mt-1">
-                            <p className={`text-xs ${deadline.textColor} font-medium`}>{deadline.date}</p>
-                            <p className="text-xs text-gray-500">{deadline.assignee}</p>
+                        {/* Left Section - Task Details */}
+                        <div className="flex flex-col">
+                            <p className="text-sm font-medium text-gray-900">{deadline.title}</p>
+                            <p className="text-xs text-gray-600">{deadline.location}</p>
+                        </div>
+
+                        {/* Right Section - Date and Assignee */}
+                        <div className="flex flex-col items-end">
+                            <p className="text-sm text-gray-900">{deadline.date}</p>
+                            <p className="text-xs text-gray-600">{deadline.assignee}</p>
                         </div>
                     </div>
                 ))}

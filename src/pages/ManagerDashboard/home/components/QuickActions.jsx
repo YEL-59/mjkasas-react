@@ -32,12 +32,12 @@ const QuickActions = () => {
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm border">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-            <div className="space-y-3">
+            <div className="space-y-3 ">
                 {actions.map((action, index) => (
                     <button
                         key={index}
                         onClick={action.onClick}
-                        className="w-full text-left p-3 hover:bg-gray-50 rounded-lg flex items-center space-x-3 transition-colors"
+                        className="w-full text-left p-4 hover:bg-gray-50 rounded-lg flex items-center space-x-3 transition-colors border border-[#E5E7EB]  rounded-lg"
                     >
                         <div className={`w-8 h-8 ${action.bgColor} rounded-lg flex items-center justify-center`}>
                             {action.icon}

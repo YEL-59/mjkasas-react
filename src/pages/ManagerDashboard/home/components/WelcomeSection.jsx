@@ -7,21 +7,21 @@ const WelcomeSection = () => {
     const navigate = useNavigate();
 
     const handleCreateWorkOrder = () => {
-        navigate('/manager/create-work-order');
+        navigate('/create-work-order');
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-white p-6 rounded-lg ">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Welcome back, Esther!</h1>
-                    <p className="text-gray-600 mt-1">Here's what's happening with your work orders today.</p>
+                    <h1 className="text-2xl font-medium text-gray-900">Welcome back, Esther!</h1>
+                    <p className="text-[#858D9D] mt-1">Here's what's happening with your work orders today.</p>
                 </div>
                 <Button
                     onClick={handleCreateWorkOrder}
-                    className="bg-[#717171] hover:bg-[#5a5a5a] text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+                    className="bg-black hover:bg-[#5a5a5a] text-white px-4 py-5 rounded-lg flex items-center space-x-2"
                 >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 text-white" />
                     <span>Create work order</span>
                 </Button>
             </div>
