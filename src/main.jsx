@@ -8,6 +8,7 @@ import { Toaster } from 'react-hot-toast';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { ThemeProvider } from './components/shared/ThemeProvider';
+import { UserProvider } from './context/UserContext';
 
 AOS.init({
   duration: 1000,
@@ -19,7 +20,9 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <RouterProvider router={router} />
+        <UserProvider>
+          <RouterProvider router={router} />
+        </UserProvider>
         <Toaster />
       </ThemeProvider>
     </QueryClientProvider>

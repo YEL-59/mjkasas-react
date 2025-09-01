@@ -1,6 +1,6 @@
 
 import AuthLayout from '@/layout/AuthLayout';
-import DashboardLayout from '@/layout/DashboardLayout';
+import UnifiedLayout from '@/layout/UnifiedLayout';
 import ForgotPassword from '@/pages/Auth/ForgotPassword';
 import OtpVerification from '@/pages/Auth/OtpVerification';
 import SetPassword from '@/pages/Auth/SetPassword';
@@ -12,6 +12,10 @@ import CreateWorkOrder from '@/pages/ManagerDashboard/CreateWorkOrder';
 import WorkOrder from '@/pages/ManagerDashboard/work-order';
 import WorkOrderDetailsPage from '@/pages/ManagerDashboard/work-order/WorkOrderDetailsPage';
 import TechnicianHome from '@/pages/TechnicianDashboard/Home';
+import TechnicianWorkOrder from '@/pages/TechnicianDashboard/workorder';
+import TechnicianCompletedOrders from '@/pages/TechnicianDashboard/CompletedOrders';
+import TechnicianInspection from '@/pages/TechnicianDashboard/Inspection';
+import TechnicianSettings from '@/pages/TechnicianDashboard/Settings';
 import NotFound from '@/components/NotFound';
 import { createBrowserRouter } from 'react-router-dom';
 import CompleteOrder from '@/pages/ManagerDashboard/complete-order';
@@ -64,19 +68,11 @@ const router = createBrowserRouter([
   // Manager Dashboard Routes
   {
     path: '/',
-    element: <DashboardLayout userType="manager" />,
+    element: <UnifiedLayout />,
     children: [
       {
         index: true,
         element: <ManagerHome />,
-      },
-      {
-        path: 'manager',
-        element: <ManagerHome />,
-      },
-      {
-        path: 'manager/create-work-order',
-        element: <CreateWorkOrder />,
       },
       {
         path: 'work-order',
@@ -128,11 +124,27 @@ const router = createBrowserRouter([
   // Technician Dashboard Routes
   {
     path: '/technician',
-    element: <DashboardLayout userType="technician" />,
+    element: <UnifiedLayout />,
     children: [
       {
         index: true,
         element: <TechnicianHome />,
+      },
+      {
+        path: 'work-order',
+        element: <TechnicianWorkOrder />,
+      },
+      {
+        path: 'completed-orders',
+        element: <TechnicianCompletedOrders />,
+      },
+      {
+        path: 'inspection',
+        element: <TechnicianInspection />,
+      },
+      {
+        path: 'settings',
+        element: <TechnicianSettings />,
       },
     ],
   },

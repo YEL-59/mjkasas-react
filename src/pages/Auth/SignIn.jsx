@@ -2,10 +2,33 @@ import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import logo from '../../assets/images/logo.png';
 import AuthbottomBg from '../../assets/images/authBottomBg.png';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../../context/UserContext';
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('manager');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login } = useUser();
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Simulate login - in real app, this would be an API call
+    login(selectedRole, {
+      name: selectedRole === 'manager' ? 'John Doe' : 'John Doe',
+      email: email || 'john.doe@example.com',
+      role: selectedRole === 'manager' ? 'Manager' : 'Technician'
+    });
+
+    // Navigate based on role
+    if (selectedRole === 'manager') {
+      navigate('/');
+    } else {
+      navigate('/technician');
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-gray-50 flex flex-col">
@@ -54,7 +77,36 @@ const SignIn = () => {
           </div>
 
           {/* Form */}
-          <form className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Role Selection */}
+            <div>
+              <label className="block text-[#000] font-[Poppins] text-[15px] md:text-[16px] font-medium mb-1">
+                Select Role
+              </label>
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('manager')}
+                  className={`flex-1 py-2 px-4 rounded-[10px] border-[1px] transition-colors ${selectedRole === 'manager'
+                    ? 'border-orange-400 bg-orange-50 text-orange-600'
+                    : 'border-[#CFCFCF] text-[#191919] hover:bg-gray-50'
+                    }`}
+                >
+                  Manager
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('technician')}
+                  className={`flex-1 py-2 px-4 rounded-[10px] border-[1px] transition-colors ${selectedRole === 'technician'
+                    ? 'border-orange-400 bg-orange-50 text-orange-600'
+                    : 'border-[#CFCFCF] text-[#191919] hover:bg-gray-50'
+                    }`}
+                >
+                  Technician
+                </button>
+              </div>
+            </div>
+
             {/* Email */}
             <div>
               <label className="block text-[#000] font-[Poppins] text-[15px] md:text-[16px] font-medium mb-1">
@@ -62,6 +114,8 @@ const SignIn = () => {
               </label>
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email address"
                 className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
@@ -75,6 +129,8 @@ const SignIn = () => {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter password"
                   className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
