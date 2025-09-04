@@ -62,7 +62,7 @@ const CompleteOrder = () => {
             </div>
 
             {/* Search Bar */}
-            <div className="relative">
+            <div className="relative max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                     placeholder="Search work order..."
@@ -81,19 +81,19 @@ const CompleteOrder = () => {
                     <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray/900 uppercase tracking-wider">
                                     Work Order ID
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray/900 uppercase tracking-wider">
                                     Title
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray/900 uppercase tracking-wider">
                                     Completed Date
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray/900 uppercase tracking-wider">
                                     Priority
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-gray/900 uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
@@ -101,13 +101,13 @@ const CompleteOrder = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredOrders.map((order) => (
                                 <tr key={order.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-[#16A34A]">
                                         {order.id}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-900">
                                         {order.title}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                                         {order.completedDate}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -118,7 +118,7 @@ const CompleteOrder = () => {
                                             {order.priority}
                                         </Badge>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                                         <Button
                                             variant="ghost"
                                             size="sm"
