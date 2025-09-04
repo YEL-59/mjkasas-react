@@ -104,12 +104,12 @@ const WorkOrder = () => {
             <div className='flex items-center justify-between'>
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Work Orders</h1>
-                    <p className="text-gray-600 mt-1">Manage and track all work orders across your facilities</p>
+                    <p className="text-[#858D9D] mt-1">Manage and track all work orders across your facilities</p>
                 </div>
                 <div>
                     <Button
                         onClick={handleCreateWorkOrder}
-                        className="bg-[#717171] hover:bg-[#5a5a5a] text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+                        className="bg-black hover:bg-[#5a5a5a] text-white px-4 py-5 rounded-lg flex items-center space-x-2"
                     >
                         <Plus className="h-4 w-4" />
                         <span>Create work order</span>
@@ -121,10 +121,10 @@ const WorkOrder = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Status Filter */}
-                    <div>
+                    <div className='w-full'>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                         <Select defaultValue="assigned">
-                            <SelectTrigger>
+                            <SelectTrigger className='w-full'>
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -136,10 +136,10 @@ const WorkOrder = () => {
                     </div>
 
                     {/* Type Filter */}
-                    <div>
+                    <div className='w-full'>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                         <Select defaultValue="construction">
-                            <SelectTrigger>
+                            <SelectTrigger className='w-full'>
                                 <SelectValue placeholder="Select type" />
                             </SelectTrigger>
                             <SelectContent>
@@ -150,10 +150,10 @@ const WorkOrder = () => {
                     </div>
 
                     {/* Buildings Filter */}
-                    <div>
+                    <div className='w-full'>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Buildings</label>
                         <Select defaultValue="all">
-                            <SelectTrigger>
+                            <SelectTrigger className='w-full'>
                                 <SelectValue placeholder="Select building" />
                             </SelectTrigger>
                             <SelectContent>
@@ -166,9 +166,9 @@ const WorkOrder = () => {
                     </div>
 
                     {/* Date Filter */}
-                    <div>
+                    <div className='w-full'>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                        <div className="relative">
+                        <div className="relative w-full">
                             <Input
                                 type="text"
                                 placeholder="mm/dd/yyyy"

@@ -208,7 +208,7 @@ const UnifiedLayout = () => {
             {/* Main Layout */}
             <div className="flex-1 flex flex-col h-full">
                 {/* Header */}
-                <header className="bg-[#F9FAFB] shadow-sm border-b px-4 lg:px-6 py-4 sticky top-0 z-10">
+                <header className="bg-[#F9FAFB]  border-b px-4 lg:px-6 py-4 sticky top-0 z-10">
                     <div className="flex items-center justify-between">
                         <div className="lg:hidden w-8"></div>
 
