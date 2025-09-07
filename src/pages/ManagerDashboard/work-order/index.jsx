@@ -95,7 +95,7 @@ const WorkOrder = () => {
     const navigate = useNavigate();
 
     const handleCreateWorkOrder = () => {
-        navigate('/manager/create-work-order');
+        navigate('/create-work-order');
     };
     // Show list view
     return (
