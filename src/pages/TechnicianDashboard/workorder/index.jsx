@@ -55,7 +55,7 @@ const Workorder = () => {
     const handleViewDetails = (workOrderId) => {
         console.log('Viewing details for:', workOrderId);
         // Navigate to work order details page
-        // navigate(`/technician/work-order/${workOrderId}`);
+        navigate(`/technician/work-order/${workOrderId}`);
     };
 
     return (

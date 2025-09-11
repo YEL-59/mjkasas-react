@@ -13,8 +13,11 @@ import WorkOrder from '@/pages/ManagerDashboard/work-order';
 import WorkOrderDetailsPage from '@/pages/ManagerDashboard/work-order/WorkOrderDetailsPage';
 import TechnicianHome from '@/pages/TechnicianDashboard/Home';
 import TechnicianWorkOrder from '@/pages/TechnicianDashboard/workorder';
-import TechnicianCompletedOrders from '@/pages/TechnicianDashboard/CompletedOrders';
-import TechnicianInspection from '@/pages/TechnicianDashboard/Inspection';
+import TechnicianWorkOrderDetails from '@/pages/TechnicianDashboard/workorder/WorkOrderDetailsPage';
+import TechnicianCompletedOrders from '@/pages/TechnicianDashboard/completed-orders';
+import TechnicianCompletedOrderDetails from '@/pages/TechnicianDashboard/completed-orders/CompletedOrderDetailsPage';
+import TechnicianInspection from '@/pages/TechnicianDashboard/inspection';
+import TechnicianInspectionDetails from '@/pages/TechnicianDashboard/inspection/InspectionDetailsPage';
 import TechnicianSettings from '@/pages/TechnicianDashboard/Settings';
 import NotFound from '@/components/NotFound';
 import { createBrowserRouter } from 'react-router-dom';
@@ -139,12 +142,24 @@ const router = createBrowserRouter([
         element: <TechnicianWorkOrder />,
       },
       {
+        path: 'work-order/:id',
+        element: <TechnicianWorkOrderDetails />,
+      },
+      {
         path: 'completed-orders',
         element: <TechnicianCompletedOrders />,
       },
       {
+        path: 'completed-orders/:id',
+        element: <TechnicianCompletedOrderDetails />,
+      },
+      {
         path: 'inspection',
         element: <TechnicianInspection />,
+      },
+      {
+        path: 'inspection/:id',
+        element: <TechnicianInspectionDetails />,
       },
       {
         path: 'settings',

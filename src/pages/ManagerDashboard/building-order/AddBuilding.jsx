@@ -68,7 +68,7 @@ const AddBuilding = () => {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-8 border rounded-lg p-5">
                 {/* Company Information */}
                 <div className="space-y-4">
                     <h2 className="text-lg font-semibold text-gray-900">Company Information</h2>
