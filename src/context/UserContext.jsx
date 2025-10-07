@@ -1,50 +1,51 @@
-import React, { createContext, useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const UserContext = createContext();
 
 export const useUser = () => {
     const context = useContext(UserContext);
     if (!context) {
-        throw new Error('useUser must be used within a UserProvider');
+        throw new Error("useUser must be used within a UserProvider");
     }
     return context;
 };
 
 export const UserProvider = ({ children }) => {
-    const [userRole, setUserRole] = useState('manager'); // Default role
-    const [userInfo, setUserInfo] = useState({
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        role: 'Manager'
-    });
+    // Default state is empty
+    const [userRole, setUserRole] = useState(null);
+    const [userInfo, setUserInfo] = useState(null);
 
+    // Restore user from localStorage if exists
+    useEffect(() => {
+        const savedUser = localStorage.getItem("user");
+        if (savedUser) {
+            const parsed = JSON.parse(savedUser);
+            setUserRole(parsed.role);
+            setUserInfo(parsed);
+        }
+    }, []);
+
+    // Login function
     const login = (role, userData) => {
         setUserRole(role);
         setUserInfo(userData);
+        localStorage.setItem("user", JSON.stringify({ role, ...userData }));
     };
 
+    // Logout function
     const logout = () => {
-        setUserRole('manager');
-        setUserInfo({
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            role: 'Manager'
-        });
-        // Navigate to login page
-        window.location.href = '/auth/sign-in';
+        setUserRole(null);
+        setUserInfo(null);
+        localStorage.removeItem("user");
+        window.location.href = "/auth/sign-in"; // safe outside router
     };
 
     const value = {
         userRole,
         userInfo,
         login,
-        logout
+        logout,
     };
 
-    return (
-        <UserContext.Provider value={value}>
-            {children}
-        </UserContext.Provider>
-    );
+    return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };

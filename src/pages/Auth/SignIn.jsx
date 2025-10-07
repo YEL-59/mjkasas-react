@@ -1,38 +1,23 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
-import logo from '../../assets/images/logo.png';
-import AuthbottomBg from '../../assets/images/authBottomBg.png';
-import { Link, useNavigate } from 'react-router-dom';
-import { useUser } from '../../context/UserContext';
+import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import logo from "../../assets/images/logo.png";
+import AuthbottomBg from "../../assets/images/authBottomBg.png";
+import { Link } from "react-router-dom";
+import { useSignIn } from "@/hooks/auth.hook";
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('manager');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const { login } = useUser();
-  const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState("manager");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Simulate login - in real app, this would be an API call
-    login(selectedRole, {
-      name: selectedRole === 'manager' ? 'John Doe' : 'John Doe',
-      email: email || 'john.doe@example.com',
-      role: selectedRole === 'manager' ? 'Manager' : 'Technician'
-    });
+  const { form, mutate, isPending } = useSignIn();
 
-    // Navigate based on role
-    if (selectedRole === 'manager') {
-      navigate('/');
-    } else {
-      navigate('/technician');
-    }
+  const onSubmit = (data) => {
+    mutate({ ...data, role: selectedRole });
   };
 
   return (
     <div className="relative min-h-screen bg-gray-50 flex flex-col">
-      {/* Background Shape */}
+      {/* Background */}
       <div className="absolute bottom-0 left-0 right-0 max-h-[556px]">
         <img
           src={AuthbottomBg}
@@ -41,7 +26,7 @@ const SignIn = () => {
         />
       </div>
 
-      {/* Logo (fixed top-left) */}
+      {/* Logo */}
       <div className="p-8">
         <img
           src={logo}
@@ -50,17 +35,18 @@ const SignIn = () => {
         />
       </div>
 
-      {/* Main Content (flex-grow so it takes remaining space) */}
+      {/* Card */}
       <div className="flex flex-1 items-center justify-center pt-4 px-3">
-        {/* Card */}
-        <div className="relative z-10 w-full max-w-md rounded-[12px] bg-[#FFF] [box-shadow:3px_-3px_4px_0_rgba(0,_0,_0,_0.25),_-3px_4px_4px_0_rgba(0,_0,_0,_0.25)] p-6 sm:p-10 md:p-12">
-          {/* Title */}
-          <h2 className="text-[#191919] text-center font-[Poppins] text-[22px] md:text-[26px] lg:text-[36px] font-bold mb-6">
+        <div className="relative z-10 w-full max-w-md rounded-[12px] bg-white shadow-md p-6 sm:p-10 md:p-12">
+          <h2 className="text-[#191919] text-center font-[Poppins] text-[26px] font-bold mb-6">
             Welcome back!
           </h2>
 
           {/* Google Button */}
-          <button className="w-full flex items-center justify-center rounded-[12px] border border-[#D9D9D9] py-2 mb-4 hover:bg-gray-100 text-[#191919] font-[Poppins] text-[15px] md:text-[16px]">
+          <button
+            type="button"
+            className="w-full flex items-center justify-center rounded-[12px] border border-[#D9D9D9] py-2 mb-4 hover:bg-gray-100 text-[#191919] font-[Poppins]"
+          >
             <img
               src="https://www.svgrepo.com/show/355037/google.svg"
               alt="Google"
@@ -77,62 +63,60 @@ const SignIn = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Role Selection */}
             <div>
-              <label className="block text-[#000] font-[Poppins] text-[15px] md:text-[16px] font-medium mb-1">
+              <label className="block text-[#000] font-medium mb-1">
                 Select Role
               </label>
               <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('manager')}
-                  className={`flex-1 py-2 px-4 rounded-[10px] border-[1px] transition-colors ${selectedRole === 'manager'
-                    ? 'border-orange-400 bg-orange-50 text-orange-600'
-                    : 'border-[#CFCFCF] text-[#191919] hover:bg-gray-50'
-                    }`}
-                >
-                  Manager
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('technician')}
-                  className={`flex-1 py-2 px-4 rounded-[10px] border-[1px] transition-colors ${selectedRole === 'technician'
-                    ? 'border-orange-400 bg-orange-50 text-orange-600'
-                    : 'border-[#CFCFCF] text-[#191919] hover:bg-gray-50'
-                    }`}
-                >
-                  Technician
-                </button>
+                {["manager", "technician"].map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => setSelectedRole(role)}
+                    className={`flex-1 py-2 px-4 rounded-[10px] border transition-colors ${selectedRole === role
+                      ? "border-orange-400 bg-orange-50 text-orange-600"
+                      : "border-gray-300 text-gray-800 hover:bg-gray-50"
+                      }`}
+                  >
+                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-[#000] font-[Poppins] text-[15px] md:text-[16px] font-medium mb-1">
+              <label className="block text-[#000] font-medium mb-1">
                 Email Address
               </label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...form.register("email")}
                 placeholder="Enter your email address"
-                className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full px-4 py-2 rounded-[10px] border border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
+                required
               />
+              {form.formState.errors.email && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-[#000] font-[Poppins] text-[15px] md:text-[16px] font-medium mb-1">
+              <label className="block text-[#000] font-medium mb-1">
                 Password
               </label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type={showPassword ? "text" : "password"}
+                  {...form.register("password")}
                   placeholder="Enter password"
-                  className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="w-full px-4 py-2 rounded-[10px] border border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  required
                 />
                 <button
                   type="button"
@@ -142,26 +126,36 @@ const SignIn = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {form.formState.errors.password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.password.message}
+                </p>
+              )}
               <Link
                 to="/forgot-password"
-                className="text-[#FF4842] font-[Poppins] text-[14px] not-italic font-normal leading-[20px] flex items-end justify-end mt-2"
+                className="text-[#FF4842] text-sm flex justify-end mt-2"
               >
                 Forgot password?
               </Link>
             </div>
 
             {/* Submit */}
-            <button className="w-full mt-10 bg-black text-[#FFF] font-[Poppins] text-[15px] md:text-[16px] not-italic font-semibold leading-[24px] py-2 rounded-md hover:bg-gray-900 cursor-pointer">
-              Log in
+            <button
+              type="submit"
+              disabled={isPending}
+              className={`w-full mt-10 ${isPending ? "bg-gray-400" : "bg-black hover:bg-gray-900"
+                } text-white font-semibold py-2 rounded-md`}
+            >
+              {isPending ? "Logging in..." : "Log in"}
             </button>
           </form>
 
-          {/* Login Link */}
-          <p className="mt-4 text-[#121212] text-center font-[Poppins] text-[15px] md:text-[16px] not-italic font-normal leading-[normal]">
-            Don't have an account?
+          {/* Signup Link */}
+          <p className="mt-4 text-[#121212] text-center text-[15px]">
+            Don't have an account?{" "}
             <Link
               to="/sign-up"
-              className="text-[#121212] font-[Poppins] text-[15px] md:text-[16px] not-italic font-semibold leading-[normal] [text-decoration-line:underline] [text-decoration-style:solid] [text-decoration-skip-ink:none] [text-underline-offset:auto] [text-underline-position:from-font] hover:underline"
+              className="font-semibold underline hover:text-orange-600"
             >
               Sign up
             </Link>
@@ -173,3 +167,15 @@ const SignIn = () => {
 };
 
 export default SignIn;
+
+
+
+// ✅ Benefits of this approach:
+
+// SignIn component only deals with UI.
+
+// useSignIn handles API, context, toast, redirect.
+
+// No need for local login calls in the component.
+
+// Cleaner, more maintainable code.

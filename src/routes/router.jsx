@@ -30,6 +30,8 @@ import Inspection from '@/pages/ManagerDashboard/insfictions';
 import InspectionDetailsPage from '@/pages/ManagerDashboard/insfictions/InspectionDetailsPage';
 import CreateInspection from '@/pages/ManagerDashboard/insfictions/CreateInspection';
 import Settings from '@/pages/ManagerDashboard/settings';
+import ProtectedRoute from './ProtectedRoute';
+import RoleBasedRoute from './RoleBasedRoute';
 
 // ============================================================================
 // MAIN ROUTER CONFIGURATION
@@ -37,6 +39,9 @@ import Settings from '@/pages/ManagerDashboard/settings';
 
 const router = createBrowserRouter([
   // Authentication Routes
+  // ===============================
+  // AUTH ROUTES (public)
+  // ===============================
   {
     path: '/auth',
     element: <AuthLayout />,
@@ -67,103 +72,156 @@ const router = createBrowserRouter([
       },
     ],
   },
+  // ===============================
+  // PROTECTED ROUTES
+  // ===============================
 
   // Manager Dashboard Routes
-  {
-    path: '/',
-    element: <UnifiedLayout />,
-    children: [
-      {
-        index: true,
-        element: <ManagerHome />,
-      },
-      {
-        path: 'work-order',
-        element: <WorkOrder />,
-      },
-      {
-        path: 'work-order/:id',
-        element: <WorkOrderDetailsPage />,
-      },
-      {
-        path: 'completed-orders',
-        element: <CompleteOrder />,
-      },
-      {
-        path: 'completed-orders/:id',
-        element: <CompleteOrderDetailsPage />,
-      },
-      {
-        path: 'buildings',
-        element: <BuildingOrder />,
-      },
-      {
-        path: 'buildings/add',
-        element: <AddBuilding />,
-      },
-      {
-        path: 'employees',
-        element: <Employee />,
-      },
-      {
-        path: 'inspection',
-        element: <Inspection />,
-      },
-      {
-        path: 'inspection/create',
-        element: <CreateInspection />,
-      },
-      {
-        path: 'inspection/:id',
-        element: <InspectionDetailsPage />,
-      },
-      {
-        path: 'settings',
-        element: <Settings />,
-      },
-      {
-        path: 'create-work-order',
-        element: <CreateWorkOrder />,
-      }
-    ],
-  },
+  // {
+  //   path: '/',
+  //   element: <UnifiedLayout />,
+  //   children: [
+  //     {
+  //       index: true,
+  //       element: <ManagerHome />,
+  //     },
+  //     {
+  //       path: 'work-order',
+  //       element: <WorkOrder />,
+  //     },
+  //     {
+  //       path: 'work-order/:id',
+  //       element: <WorkOrderDetailsPage />,
+  //     },
+  //     {
+  //       path: 'completed-orders',
+  //       element: <CompleteOrder />,
+  //     },
+  //     {
+  //       path: 'completed-orders/:id',
+  //       element: <CompleteOrderDetailsPage />,
+  //     },
+  //     {
+  //       path: 'buildings',
+  //       element: <BuildingOrder />,
+  //     },
+  //     {
+  //       path: 'buildings/add',
+  //       element: <AddBuilding />,
+  //     },
+  //     {
+  //       path: 'employees',
+  //       element: <Employee />,
+  //     },
+  //     {
+  //       path: 'inspection',
+  //       element: <Inspection />,
+  //     },
+  //     {
+  //       path: 'inspection/create',
+  //       element: <CreateInspection />,
+  //     },
+  //     {
+  //       path: 'inspection/:id',
+  //       element: <InspectionDetailsPage />,
+  //     },
+  //     {
+  //       path: 'settings',
+  //       element: <Settings />,
+  //     },
+  //     {
+  //       path: 'create-work-order',
+  //       element: <CreateWorkOrder />,
+  //     }
+  //   ],
+  // },
 
-  // Technician Dashboard Routes
   {
-    path: '/technician',
-    element: <UnifiedLayout />,
+    element: <ProtectedRoute />, // <--- check for token first
     children: [
+      // MANAGER DASHBOARD (role-based)
       {
-        index: true,
-        element: <TechnicianHome />,
+        element: <RoleBasedRoute allowedRoles={["manager"]} />,
+        children: [
+          {
+            path: "/",
+            element: <UnifiedLayout />,
+            children: [
+              { index: true, element: <ManagerHome /> },
+              { path: "work-order", element: <WorkOrder /> },
+              { path: "work-order/:id", element: <WorkOrderDetailsPage /> },
+              { path: "completed-orders", element: <CompleteOrder /> },
+              { path: "completed-orders/:id", element: <CompleteOrderDetailsPage /> },
+              { path: "buildings", element: <BuildingOrder /> },
+              { path: "buildings/add", element: <AddBuilding /> },
+              { path: "employees", element: <Employee /> },
+              { path: "inspection", element: <Inspection /> },
+              { path: "inspection/create", element: <CreateInspection /> },
+              { path: "inspection/:id", element: <InspectionDetailsPage /> },
+              { path: "settings", element: <Settings /> },
+              { path: "create-work-order", element: <CreateWorkOrder /> },
+            ],
+          },
+        ],
       },
+
+      // Technician Dashboard Routes
+      // {
+      //   path: '/technician',
+      //   element: <UnifiedLayout />,
+      //   children: [
+      //     {
+      //       index: true,
+      //       element: <TechnicianHome />,
+      //     },
+      //     {
+      //       path: 'work-order',
+      //       element: <TechnicianWorkOrder />,
+      //     },
+      //     {
+      //       path: 'work-order/:id',
+      //       element: <TechnicianWorkOrderDetails />,
+      //     },
+      //     {
+      //       path: 'completed-orders',
+      //       element: <TechnicianCompletedOrders />,
+      //     },
+      //     {
+      //       path: 'completed-orders/:id',
+      //       element: <TechnicianCompletedOrderDetails />,
+      //     },
+      //     {
+      //       path: 'inspection',
+      //       element: <TechnicianInspection />,
+      //     },
+      //     {
+      //       path: 'inspection/:id',
+      //       element: <TechnicianInspectionDetails />,
+      //     },
+      //     {
+      //       path: 'settings',
+      //       element: <TechnicianSettings />,
+      //     },
+      //   ],
+      // },
       {
-        path: 'work-order',
-        element: <TechnicianWorkOrder />,
-      },
-      {
-        path: 'work-order/:id',
-        element: <TechnicianWorkOrderDetails />,
-      },
-      {
-        path: 'completed-orders',
-        element: <TechnicianCompletedOrders />,
-      },
-      {
-        path: 'completed-orders/:id',
-        element: <TechnicianCompletedOrderDetails />,
-      },
-      {
-        path: 'inspection',
-        element: <TechnicianInspection />,
-      },
-      {
-        path: 'inspection/:id',
-        element: <TechnicianInspectionDetails />,
-      },
-      {
-        path: 'settings',
-        element: <TechnicianSettings />,
+        element: <RoleBasedRoute allowedRoles={["technician"]} />,
+        children: [
+          {
+            path: "/technician",
+            element: <UnifiedLayout />,
+            children: [
+              { index: true, element: <TechnicianHome /> },
+              { path: "work-order", element: <TechnicianWorkOrder /> },
+              { path: "work-order/:id", element: <TechnicianWorkOrderDetails /> },
+              { path: "completed-orders", element: <TechnicianCompletedOrders /> },
+              { path: "completed-orders/:id", element: <TechnicianCompletedOrderDetails /> },
+              { path: "inspection", element: <TechnicianInspection /> },
+              { path: "inspection/:id", element: <TechnicianInspectionDetails /> },
+              { path: "settings", element: <TechnicianSettings /> },
+            ],
+          },
+        ],
       },
     ],
   },
