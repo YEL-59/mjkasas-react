@@ -1,12 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import logo from '../../assets/images/logo.png';
 import AuthbottomBg from '../../assets/images/authBottomBg.png';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
+import { useSignUp } from '@/hooks/auth.hook';
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("technician");
+
+  const { form, mutate, isPending } = useSignUp();
+
+  const onSubmit = (data) => {
+    mutate(data);
+  };
+
+  const handleRoleSelect = (role) => {
+    setSelectedRole(role);
+    form.setValue("role", role);
+  };
+
+  // Sync form value with selected role
+  useEffect(() => {
+    form.setValue("role", selectedRole);
+  }, [selectedRole, form]);
 
   return (
     <div className="relative min-h-screen bg-gray-50 flex flex-col">
@@ -55,7 +73,33 @@ const SignUp = () => {
           </div>
 
           {/* Form */}
-          <form className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Role Selection */}
+            <div>
+              <label className="block text-[#000] font-medium mb-1">
+                Select Role
+              </label>
+              <div className="flex space-x-2">
+                {["manager", "technician"].map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => handleRoleSelect(role)}
+                    className={`flex-1 py-2 px-4 rounded-[10px] border transition-colors ${selectedRole === role
+                      ? "border-orange-400 bg-orange-50 text-orange-600"
+                      : "border-gray-300 text-gray-800 hover:bg-gray-50"
+                      }`}
+                  >
+                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                  </button>
+                ))}
+              </div>
+              {form.formState.errors.role && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.role.message}
+                </p>
+              )}
+            </div>
             {/* Full Name */}
             <div>
               <label className="block text-[#000] font-[Poppins] text-[15px] md:text-[16px] font-medium mb-1">
@@ -63,9 +107,15 @@ const SignUp = () => {
               </label>
               <input
                 type="text"
+                {...form.register("name")}
                 placeholder="Enter your full name"
                 className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
+              {form.formState.errors.name && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.name.message}
+                </p>
+              )}
             </div>
 
             {/* Email */}
@@ -75,9 +125,15 @@ const SignUp = () => {
               </label>
               <input
                 type="email"
+                {...form.register("email")}
                 placeholder="Enter your email address"
                 className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
+              {form.formState.errors.email && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Password */}
@@ -88,6 +144,7 @@ const SignUp = () => {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  {...form.register("password")}
                   placeholder="Enter password"
                   className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
@@ -99,6 +156,11 @@ const SignUp = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {form.formState.errors.password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.password.message}
+                </p>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -109,6 +171,7 @@ const SignUp = () => {
               <div className="relative">
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
+                  {...form.register("password_confirmation")}
                   placeholder="Retype password"
                   className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
@@ -124,11 +187,20 @@ const SignUp = () => {
                   )}
                 </button>
               </div>
+              {form.formState.errors.password_confirmation && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.password_confirmation.message}
+                </p>
+              )}
             </div>
 
             {/* Submit */}
-            <button className="w-full mt-10 bg-black text-[#FFF] font-[Poppins] text-[15px] md:text-[16px] not-italic font-semibold leading-[24px] py-2 rounded-md hover:bg-gray-900 cursor-pointer">
-              Sign Up
+            <button
+              type="submit"
+              disabled={isPending}
+              className={`w-full mt-10 ${isPending ? "bg-gray-400" : "bg-black hover:bg-gray-900"} text-[#FFF] font-[Poppins] text-[15px] md:text-[16px] not-italic font-semibold leading-[24px] py-2 rounded-md cursor-pointer`}
+            >
+              {isPending ? "Signing up..." : "Sign Up"}
             </button>
           </form>
 

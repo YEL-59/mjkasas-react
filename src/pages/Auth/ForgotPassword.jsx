@@ -1,8 +1,15 @@
+import React from 'react';
 import logo from '../../assets/images/logo.png';
 import AuthbottomBg from '../../assets/images/authBottomBg.png';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
+import { useForgotPassword } from '@/hooks/auth.hook';
 
 const ForgotPassword = () => {
+  const { form, mutate, isPending } = useForgotPassword();
+
+  const onSubmit = (data) => {
+    mutate(data);
+  };
 
   return (
     <div className="relative min-h-screen bg-gray-50 flex flex-col">
@@ -39,7 +46,7 @@ const ForgotPassword = () => {
           </p>
 
           {/* Form */}
-          <form className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Email */}
             <div>
               <label className="block text-[#000] font-[Poppins] text-[15px] md:text-[16px] font-medium mb-1">
@@ -47,14 +54,24 @@ const ForgotPassword = () => {
               </label>
               <input
                 type="email"
+                {...form.register("email")}
                 placeholder="Enter your email address"
                 className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
+              {form.formState.errors.email && (
+                <p className="text-red-500 text-sm mt-1">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Submit */}
-            <button className="w-full mt-10 bg-black text-[#FFF] font-[Poppins] text-[15px] md:text-[16px] not-italic font-semibold leading-[24px] py-2 rounded-md hover:bg-gray-900 cursor-pointer">
-              Continue
+            <button
+              type="submit"
+              disabled={isPending}
+              className={`w-full mt-10 ${isPending ? "bg-gray-400" : "bg-black hover:bg-gray-900"} text-[#FFF] font-[Poppins] text-[15px] md:text-[16px] not-italic font-semibold leading-[24px] py-2 rounded-md cursor-pointer`}
+            >
+              {isPending ? "Sending..." : "Continue"}
             </button>
           </form>
 
