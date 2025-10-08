@@ -18,12 +18,19 @@ export const UserProvider = ({ children }) => {
     // Restore user from localStorage if exists
     useEffect(() => {
         const savedUser = localStorage.getItem("user");
-        if (savedUser) {
-            const parsed = JSON.parse(savedUser);
-            setUserRole(parsed.role);
-            setUserInfo(parsed);
+
+        try {
+            if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
+                const parsed = JSON.parse(savedUser);
+                if (parsed?.role) setUserRole(parsed.role);
+                if (parsed) setUserInfo(parsed);
+            }
+        } catch (error) {
+            console.error("Failed to parse saved user:", error);
+            localStorage.removeItem("user"); // Clean up broken data
         }
     }, []);
+
 
     // Login function
     const login = (role, userData) => {

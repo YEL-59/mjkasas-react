@@ -7,12 +7,12 @@ import { useSignIn } from "@/hooks/auth.hook";
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState("manager");
+
 
   const { form, mutate, isPending } = useSignIn();
 
   const onSubmit = (data) => {
-    mutate({ ...data, role: selectedRole });
+    mutate(data);
   };
 
   return (
@@ -64,28 +64,6 @@ const SignIn = () => {
 
           {/* Form */}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Role Selection */}
-            <div>
-              <label className="block text-[#000] font-medium mb-1">
-                Select Role
-              </label>
-              <div className="flex space-x-2">
-                {["manager", "technician"].map((role) => (
-                  <button
-                    key={role}
-                    type="button"
-                    onClick={() => setSelectedRole(role)}
-                    className={`flex-1 py-2 px-4 rounded-[10px] border transition-colors ${selectedRole === role
-                      ? "border-orange-400 bg-orange-50 text-orange-600"
-                      : "border-gray-300 text-gray-800 hover:bg-gray-50"
-                      }`}
-                  >
-                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Email */}
             <div>
               <label className="block text-[#000] font-medium mb-1">
@@ -132,7 +110,7 @@ const SignIn = () => {
                 </p>
               )}
               <Link
-                to="/forgot-password"
+                to="/auth/forgot-password"
                 className="text-[#FF4842] text-sm flex justify-end mt-2"
               >
                 Forgot password?
@@ -154,7 +132,7 @@ const SignIn = () => {
           <p className="mt-4 text-[#121212] text-center text-[15px]">
             Don't have an account?{" "}
             <Link
-              to="/sign-up"
+              to="/auth/sign-up"
               className="font-semibold underline hover:text-orange-600"
             >
               Sign up
