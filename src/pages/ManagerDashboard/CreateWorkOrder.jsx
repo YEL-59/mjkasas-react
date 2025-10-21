@@ -45,8 +45,8 @@ const workOrderSchema = z.object({
     digitalSignature: z.string().min(1, 'Digital signature is required'),
 });
 
-export default function CreateWorkOrder() {
-    const [isRecurring, setIsRecurring] = useState(false);
+export default function CreateWorkOrder({ initialValues, onSubmit: customSubmit, isEdit }) {
+    const [isRecurring, setIsRecurring] = useState(initialValues?.recurringWorkOrder || false);
     const [beforePhotos, setBeforePhotos] = useState([]);
     const [signature, setSignature] = useState('');
     const [isDrawing, setIsDrawing] = useState(false);
@@ -59,6 +59,8 @@ export default function CreateWorkOrder() {
     const [techDropdownOpen, setTechDropdownOpen] = useState(false);
     const [technicianDisplay, setTechnicianDisplay] = useState('');
 
+    const { mutate, isPending } = useCreateWorkOrder();
+
     const {
         register,
         handleSubmit,
@@ -68,26 +70,34 @@ export default function CreateWorkOrder() {
     } = useForm({
         resolver: zodResolver(workOrderSchema),
         defaultValues: {
-            recurringWorkOrder: false,
-            category: 'construction',
-            hazardousCleanup: 'no',
-            priority: 'normal',
-            orderType: 'billable',
-            hourlyRate: 0,
-            beforePhotos: [],
-            technician: '',
+            recurringWorkOrder: initialValues?.recurringWorkOrder || false,
+            category: initialValues?.category || 'construction',
+            hazardousCleanup: initialValues?.hazardousCleanup || 'no',
+            priority: initialValues?.priority || 'normal',
+            orderType: initialValues?.orderType || 'billable',
+            hourlyRate: initialValues?.hourlyRate || 0,
+            beforePhotos: initialValues?.beforePhotos || [],
+            technician: initialValues?.technician || '',
+            title: initialValues?.title || '',
+            description: initialValues?.description || '',
+            jobType: initialValues?.jobType || '',
+            dueDate: initialValues?.dueDate ? new Date(initialValues.dueDate) : undefined,
+            followUpDate: initialValues?.followUpDate ? new Date(initialValues.followUpDate) : undefined,
+            location: initialValues?.location || '',
+            recurringOptions: {
+                twoWeeks: initialValues?.recurringOptions?.twoWeeks || false,
+                oneWeek: initialValues?.recurringOptions?.oneWeek || false,
+                sixHours: initialValues?.recurringOptions?.sixHours || false,
+            },
         },
     });
 
-    const { mutate, isPending } = useCreateWorkOrder();
-
-    const onSubmit = (data) => {
-        // Bind signature into form data if present
-        if (signature) {
-            setValue('digitalSignature', signature);
+    const onSubmit = async (data) => {
+        if (customSubmit) {
+            await customSubmit(data);
+        } else {
+            mutate(data);
         }
-        // Send to API via hook
-        mutate({ values: data, photos: beforePhotos });
     };
 
     // Debounced technician search
@@ -149,8 +159,12 @@ export default function CreateWorkOrder() {
         <>
 
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Create New Work Order</h1>
-                <p className="text-gray-600 mt-2">Fill out the details below to create a new work order</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                    {isEdit ? 'Edit Work Order' : 'Create New Work Order'}
+                </h1>
+                <p className="text-gray-600 mt-2">
+                    {isEdit ? 'Update the work order details below' : 'Fill out the details below to create a new work order'}
+                </p>
             </div>
 
             <div className="max-w-full mx-auto bg-white rounded-lg border p-6">
@@ -594,8 +608,12 @@ export default function CreateWorkOrder() {
 
                     {/* Submit Button */}
                     <div className="flex justify-end pt-6">
-                        <Button type="submit" disabled={isPending} className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-2">
-                            {isPending ? 'Creating...' : 'Create Work Order'}
+                        <Button 
+                            type="submit" 
+                            disabled={isPending} 
+                            className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-2"
+                        >
+                            {isPending ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Work Order' : 'Create Work Order')}
                         </Button>
                     </div>
                 </form>

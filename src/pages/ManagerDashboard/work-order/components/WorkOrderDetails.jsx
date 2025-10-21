@@ -91,7 +91,7 @@ const WorkOrderDetails = ({
   };
 
   const handleEdit = () => {
-    navigate(`/create-work-order/${workOrder.id}`);
+    navigate(`/work-order/${workOrder.id}/edit`);
   };
 
   // If it's a page view, don't check for isOpen

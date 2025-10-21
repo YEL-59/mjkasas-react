@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { axiosPrivate } from "@/lib/axios.config";
 
 // Helper: map UI form values to API payload
-const mapToApiPayload = (values) => {
+export const mapToApiPayload = (values) => {
   // Map enums and formatting
   const jobType = values.jobType; // Expecting exact API values
   const category = values.category === "construction" || values.category === "Construction"
@@ -154,6 +154,26 @@ export const useManagerWorkOrderDetail = ({ id, enabled = true }) => {
   return { ...query, detail: query.data?.data };
 };
 
+export const useUpdateWorkOrder = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, data }) => {
+            const response = await axiosPrivate.put(`/manager/work-order/${id}`, data);
+            return response.data;
+        },
+        onSuccess: () => {
+            toast.success("Work order updated successfully");
+            // Correct query keys to match list and detail hooks
+            queryClient.invalidateQueries({ queryKey: ['manager-work-orders'] });
+            queryClient.invalidateQueries({ queryKey: ['manager-work-order-detail'] });
+        },
+        onError: (error) => {
+            toast.error(error.response?.data?.message || "Failed to update work order");
+        },
+    });
+};
+
 export const useDeleteWorkOrder = () => {
     const queryClient = useQueryClient();
 
@@ -165,7 +185,7 @@ export const useDeleteWorkOrder = () => {
         onSuccess: () => {
             toast.success("Work order deleted successfully");
             // Invalidate work orders list to trigger refetch
-            queryClient.invalidateQueries({ queryKey: ['managerWorkOrders'] });
+            queryClient.invalidateQueries({ queryKey: ['manager-work-orders'] });
         },
         onError: (error) => {
             toast.error(error.response?.data?.message || "Failed to delete work order");

@@ -11,6 +11,7 @@ import ManagerHome from '@/pages/ManagerDashboard/home';
 import CreateWorkOrder from '@/pages/ManagerDashboard/CreateWorkOrder';
 import WorkOrder from '@/pages/ManagerDashboard/work-order';
 import WorkOrderDetailsPage from '@/pages/ManagerDashboard/work-order/WorkOrderDetailsPage';
+import EditWorkOrder from '@/pages/ManagerDashboard/work-order/EditWorkOrder';
 import TechnicianHome from '@/pages/TechnicianDashboard/Home';
 import TechnicianWorkOrder from '@/pages/TechnicianDashboard/workorder';
 import TechnicianWorkOrderDetails from '@/pages/TechnicianDashboard/workorder/WorkOrderDetailsPage';
@@ -150,6 +151,7 @@ const router = createBrowserRouter([
               { index: true, element: <ManagerHome /> },
               { path: "work-order", element: <WorkOrder /> },
               { path: "work-order/:id", element: <WorkOrderDetailsPage /> },
+              { path: "work-order/:id/edit", element: <EditWorkOrder /> },
               { path: "completed-orders", element: <CompleteOrder /> },
               { path: "completed-orders/:id", element: <CompleteOrderDetailsPage /> },
               { path: "buildings", element: <BuildingOrder /> },
