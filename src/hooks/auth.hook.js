@@ -5,10 +5,15 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
-import { signInSchema, signUpSchema, forgotPasswordSchema, otpVerificationSchema, resendOtpSchema } from "@/schemas/auth.schemas";
+import {
+  signInSchema,
+  signUpSchema,
+  forgotPasswordSchema,
+  otpVerificationSchema,
+  resendOtpSchema,
+} from "@/schemas/auth.schemas";
 import { axiosPrivate, axiosPublic } from "@/lib/axios.config";
 import { useUser } from "@/context/UserContext";
-
 
 // SignUp Hook - Role-based API calls
 export const useSignUp = () => {
@@ -28,12 +33,13 @@ export const useSignUp = () => {
   const { mutate, isPending, isError } = useMutation({
     mutationFn: async (data) => {
       const { role, ...userData } = data;
-      
+
       // Choose API endpoint based on role
-      const endpoint = role === "manager" 
-        ? "/auth/register-manager" 
-        : "/auth/register-technician";
-      
+      const endpoint =
+        role === "manager"
+          ? "/auth/register-manager"
+          : "/auth/register-technician";
+
       // Send all user data including password_confirmation to the API
       const res = await axiosPublic.post(endpoint, userData);
       return res.data;
@@ -48,7 +54,8 @@ export const useSignUp = () => {
     },
     onError: (error) => {
       const responseData = error?.response?.data;
-      const message = responseData?.message || error.message || "Failed to sign up";
+      const message =
+        responseData?.message || error.message || "Failed to sign up";
 
       // Handle field-specific errors
       if (responseData?.error?.password) {
@@ -148,15 +155,18 @@ export const useForgotPassword = () => {
 
   const { mutate, isPending, isError } = useMutation({
     mutationFn: async (data) => {
-      const res = await axiosPublic.post("/auth/forget-password/otp-send", data);
+      const res = await axiosPublic.post(
+        "/auth/forget-password/otp-send",
+        data
+      );
       return res.data;
     },
     onSuccess: (data) => {
       if (data?.success) {
         toast.success(data?.message || "OTP sent successfully");
         // Navigate to OTP verification page with email
-        navigate("/auth/otp-verification", { 
-          state: { email: form.getValues("email") } 
+        navigate("/auth/otp-verification", {
+          state: { email: form.getValues("email") },
         });
       } else {
         toast.error(data?.message || "Failed to send OTP");
@@ -164,7 +174,8 @@ export const useForgotPassword = () => {
     },
     onError: (error) => {
       const responseData = error?.response?.data;
-      const message = responseData?.message || error.message || "Failed to send OTP";
+      const message =
+        responseData?.message || error.message || "Failed to send OTP";
 
       if (responseData?.error?.email) {
         form.setError("email", { message: responseData.error.email[0] });
@@ -194,15 +205,18 @@ export const useOtpVerification = (email) => {
 
   const { mutate, isPending, isError } = useMutation({
     mutationFn: async (data) => {
-      const res = await axiosPublic.post("/auth/forget-password/otp-match", data);
+      const res = await axiosPublic.post(
+        "/auth/forget-password/otp-match",
+        data
+      );
       return res.data;
     },
     onSuccess: (data) => {
       if (data?.success) {
         toast.success(data?.message || "OTP verified successfully");
         // Navigate to set password page
-        navigate("/auth/set-password", { 
-          state: { email: form.getValues("email") } 
+        navigate("/auth/set-password", {
+          state: { email: form.getValues("email") },
         });
       } else {
         toast.error(data?.message || "OTP verification failed");
@@ -210,7 +224,8 @@ export const useOtpVerification = (email) => {
     },
     onError: (error) => {
       const responseData = error?.response?.data;
-      const message = responseData?.message || error.message || "Failed to verify OTP";
+      const message =
+        responseData?.message || error.message || "Failed to verify OTP";
 
       if (responseData?.error?.otp) {
         form.setError("otp", { message: responseData.error.otp[0] });
@@ -231,13 +246,13 @@ export const useResendOtp = (email) => {
     resolver: zodResolver(resendOtpSchema),
     defaultValues: {
       email: email || "",
-      operation: "email",
+      operation: "password",
     },
   });
 
   const { mutate, isPending, isError } = useMutation({
     mutationFn: async (data) => {
-      const res = await axiosPrivate.post("/auth/otp-send", data);
+      const res = await axiosPublic.post("/auth/forget-password/otp-resend", data);
       return res.data;
     },
     onSuccess: (data) => {
@@ -248,13 +263,60 @@ export const useResendOtp = (email) => {
       }
     },
     onError: (error) => {
-      const responseData = error?.response?.data;
-      const message = responseData?.message || error.message || "Failed to resend OTP";
+      const message = error?.response?.data?.message || error.message || "Failed to resend OTP";
+      toast.error(message);
+    },
+  });
 
-      if (responseData?.error?.email) {
+  return { form, mutate, isPending, isError };
+};
+
+// Reset Password Hook
+export const useResetPassword = (email) => {
+  const navigate = useNavigate();
+  
+  // Create a schema for reset password validation
+  const resetPasswordSchema = z.object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    password_confirmation: z.string()
+  }).refine((data) => data.password === data.password_confirmation, {
+    message: "Passwords don't match",
+    path: ["password_confirmation"],
+  });
+
+  const form = useForm({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      email: email || "",
+      password: "",
+      password_confirmation: "",
+    },
+  });
+
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: async (data) => {
+      const res = await axiosPublic.post("/auth/forget-password/reset-password", data);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      if (data?.success) {
+        toast.success(data?.message || "Password reset successful");
+        navigate("/auth/sign-in");
+      } else {
+        toast.error(data?.message || "Failed to reset password");
+      }
+    },
+    onError: (error) => {
+      const responseData = error?.response?.data;
+      const message = responseData?.message || error.message || "Failed to reset password";
+
+      if (responseData?.error?.password) {
+        form.setError("password", { message: responseData.error.password[0] });
+      } else if (responseData?.error?.email) {
         form.setError("email", { message: responseData.error.email[0] });
-      } else if (message.toLowerCase().includes("email")) {
-        form.setError("email", { message });
+      } else if (message.toLowerCase().includes("password")) {
+        form.setError("password", { message });
       } else {
         toast.error(message);
       }

@@ -1,12 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import logo from '../../assets/images/logo.png';
 import AuthbottomBg from '../../assets/images/authBottomBg.png';
-import { Link } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useResetPassword } from '../../hooks/auth.hook';
 
 const SetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Get email from location state or query params
+  const email = location.state?.email || new URLSearchParams(location.search).get('email');
+  
+  // If no email is provided, redirect to forgot password
+  useEffect(() => {
+    if (!email) {
+      navigate('/auth/forgot-password');
+    }
+  }, [email, navigate]);
+  
+  // Use the reset password hook
+  const { form, mutate, isPending, isError } = useResetPassword(email);
+  
+  // Destructure form methods
+  const { register, handleSubmit, formState: { errors } } = form;
+  
+  // Handle form submission
+  const onSubmit = (data) => {
+    mutate(data);
+  };
 
   return (
     <div className="relative min-h-screen bg-gray-50 flex flex-col">
@@ -42,7 +66,10 @@ const SetPassword = () => {
           </p>
 
           {/* Form */}
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+            {/* Hidden Email Field */}
+            <input type="hidden" {...register('email')} value={email} />
+            
             {/* Password */}
             <div>
               <label className="block text-[#000] font-[Poppins] text-[15px] md:text-[16px] font-medium mb-1">
@@ -52,7 +79,10 @@ const SetPassword = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter password"
-                  className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className={`w-full px-4 py-2 rounded-[10px] border-[1px] ${
+                    errors.password ? 'border-red-500' : 'border-[#CFCFCF]'
+                  } focus:outline-none focus:ring-2 focus:ring-orange-400`}
+                  {...register('password')}
                 />
                 <button
                   type="button"
@@ -62,6 +92,9 @@ const SetPassword = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -73,7 +106,10 @@ const SetPassword = () => {
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Retype password"
-                  className="w-full px-4 py-2 rounded-[10px] border-[1px]  border-[#CFCFCF] focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className={`w-full px-4 py-2 rounded-[10px] border-[1px] ${
+                    errors.password_confirmation ? 'border-red-500' : 'border-[#CFCFCF]'
+                  } focus:outline-none focus:ring-2 focus:ring-orange-400`}
+                  {...register('password_confirmation')}
                 />
                 <button
                   type="button"
@@ -87,18 +123,25 @@ const SetPassword = () => {
                   )}
                 </button>
               </div>
+              {errors.password_confirmation && (
+                <p className="text-red-500 text-sm mt-1">{errors.password_confirmation.message}</p>
+              )}
             </div>
 
             {/* Submit */}
-            <button className="w-full mt-10 bg-black text-[#FFF] font-[Poppins] text-[15px] md:text-[16px] not-italic font-semibold leading-[24px] py-2 rounded-md hover:bg-gray-900 cursor-pointer">
-              Confirm
+            <button 
+              type="submit"
+              disabled={isPending}
+              className="w-full mt-10 bg-black text-[#FFF] font-[Poppins] text-[15px] md:text-[16px] not-italic font-semibold leading-[24px] py-2 rounded-md hover:bg-gray-900 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {isPending ? 'Processing...' : 'Confirm'}
             </button>
           </form>
 
           {/* Login Link */}
           <p className="mt-4 text-center">
             <Link
-              to="/sign-in"
+              to="/auth/sign-in"
               className="text-[#121212] font-[Poppins] text-[15px] md:text-[16px] not-italic font-semibold leading-[normal] [text-decoration-line:underline] [text-decoration-style:solid] [text-decoration-skip-ink:none] [text-underline-offset:auto] [text-underline-position:from-font] hover:underline"
             >
               Back to login
