@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,9 +11,11 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Upload, X, PenTool } from 'lucide-react';
+import { CalendarIcon, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useCreateWorkOrder } from '@/hooks/workorder.hook';
+import { axiosPrivate } from '@/lib/axios.config';
 
 // Zod schema for form validation
 const workOrderSchema = z.object({
@@ -22,9 +24,9 @@ const workOrderSchema = z.object({
     jobType: z.string().min(1, 'Job type is required'),
     hourlyRate: z.number().min(0, 'Hourly rate must be 0 or greater'),
     dueDate: z.date(),
-    followUpDate: z.date().optional(),
+    followUpDate: z.date(),
     location: z.string().min(1, 'Location is required'),
-    assignTo: z.string().min(1, 'Employee assignment is required'),
+    technician: z.string().min(1, 'Technician is required'),
     category: z.enum(['construction', 'janitorial']),
     hazardousCleanup: z.enum(['yes', 'no']),
     priority: z.enum(['normal', 'urgent']),
@@ -50,6 +52,13 @@ export default function CreateWorkOrder() {
     const [isDrawing, setIsDrawing] = useState(false);
     const [canvasRef, setCanvasRef] = useState(null);
 
+    // Technician search state
+    const [technicianQuery, setTechnicianQuery] = useState('');
+    const [technicianResults, setTechnicianResults] = useState([]);
+    const [techLoading, setTechLoading] = useState(false);
+    const [techDropdownOpen, setTechDropdownOpen] = useState(false);
+    const [technicianDisplay, setTechnicianDisplay] = useState('');
+
     const {
         register,
         handleSubmit,
@@ -66,13 +75,50 @@ export default function CreateWorkOrder() {
             orderType: 'billable',
             hourlyRate: 0,
             beforePhotos: [],
+            technician: '',
         },
     });
 
+    const { mutate, isPending } = useCreateWorkOrder();
+
     const onSubmit = (data) => {
-        console.log('Form data:', data);
-        // Handle form submission
+        // Bind signature into form data if present
+        if (signature) {
+            setValue('digitalSignature', signature);
+        }
+        // Send to API via hook
+        mutate({ values: data, photos: beforePhotos });
     };
+
+    // Debounced technician search
+    useEffect(() => {
+        const q = technicianQuery.trim();
+        if (q.length < 2) {
+            setTechnicianResults([]);
+            return;
+        }
+        const controller = new AbortController();
+        setTechLoading(true);
+        const timer = setTimeout(async () => {
+            try {
+                const res = await axiosPrivate.get('/technician/user/find-technician', {
+                    params: { name: q },
+                    signal: controller.signal,
+                });
+                const list = res?.data?.data || [];
+                setTechnicianResults(list);
+                setTechDropdownOpen(true);
+            } catch (e) {
+                // ignore for now
+            } finally {
+                setTechLoading(false);
+            }
+        }, 300);
+        return () => {
+            clearTimeout(timer);
+            controller.abort();
+        };
+    }, [technicianQuery]);
 
     const handlePhotoUpload = (event) => {
         const files = Array.from(event.target.files);
@@ -91,6 +137,7 @@ export default function CreateWorkOrder() {
 
     const clearSignature = () => {
         setSignature('');
+        setValue('digitalSignature', '');
         if (canvasRef) {
             const ctx = canvasRef.getContext('2d');
             ctx.clearRect(0, 0, canvasRef.width, canvasRef.height);
@@ -210,16 +257,13 @@ export default function CreateWorkOrder() {
                                     <SelectValue placeholder="Select job type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="cleaning">Prevailing Wage
-                                    </SelectItem>
-                                    <SelectItem value="maintenance">Prevailing Wage OT
-                                    </SelectItem>
-                                    <SelectItem value="repair">Davis Bacon
-                                    </SelectItem>
-                                    <SelectItem value="inspection">Regular Wage
-                                    </SelectItem>
-                                    <SelectItem value="installation">T&M
-                                    </SelectItem>
+                                    <SelectItem value="Prevailing Wage">Prevailing Wage</SelectItem>
+                                    <SelectItem value="Prevailing Wage OT">Prevailing Wage OT</SelectItem>
+                                    <SelectItem value="Davis Bacon">Davis Bacon</SelectItem>
+                                    <SelectItem value="Regular Wage">Regular Wage</SelectItem>
+                                    <SelectItem value="T&M">T&M</SelectItem>
+                                    <SelectItem value="Bio Hazard Cleanup">Bio Hazard Cleanup</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.jobType && <p className="text-red-500 text-sm mt-1">{errors.jobType.message}</p>}
@@ -300,106 +344,137 @@ export default function CreateWorkOrder() {
                                     />
                                 </PopoverContent>
                             </Popover>
+                            {errors.followUpDate && <p className="text-red-500 text-sm mt-1">{errors.followUpDate.message}</p>}
+                        </div>
+
+                        {/* Technician searchable input */}
+                        <div className="relative">
+                            <Label htmlFor="technicianSearch" className='pb-2 text-[#374151]'>Assign to</Label>
+                            <Input
+                                id="technicianSearch"
+                                placeholder="Search technician by name"
+                                value={technicianQuery}
+                                onChange={(e) => setTechnicianQuery(e.target.value)}
+                                onFocus={() => setTechDropdownOpen(true)}
+                                className={cn(errors.technician && 'border-red-500')}
+                            />
+                            {/* hidden field holds selected technician id for form validation */}
+                            <input type="hidden" {...register('technician')} />
+
+                            {techDropdownOpen && (
+                                <div className="absolute z-10 mt-1 w-full bg-white border rounded-md shadow-md max-h-60 overflow-auto">
+                                    {techLoading && (
+                                        <div className="px-3 py-2 text-sm text-gray-500">Searching...</div>
+                                    )}
+                                    {!techLoading && technicianResults.length === 0 && technicianQuery.trim().length >= 2 && (
+                                        <div className="px-3 py-2 text-sm text-gray-500">No technicians found</div>
+                                    )}
+                                    {!techLoading && technicianResults.map((t) => (
+                                        <button
+                                            type="button"
+                                            key={t.id}
+                                            className="flex items-center w-full px-3 py-2 hover:bg-gray-50 text-left"
+                                            onClick={() => {
+                                                setTechnicianDisplay(t.name);
+                                                setValue('technician', String(t.id), { shouldValidate: true });
+                                                setTechDropdownOpen(false);
+                                                setTechnicianQuery(t.name);
+                                            }}
+                                        >
+                                            <img
+                                                src={t.avatar || 'https://mjkasas.softvencefsd.xyz/assets/img/user_placeholder.png'}
+                                                alt={t.name}
+                                                className="w-6 h-6 rounded-full mr-2"
+                                            />
+                                            <span className="text-sm text-gray-700">{t.name}</span>
+                                            <span className="ml-auto text-xs text-gray-400">ID: {t.id}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {errors.technician && <p className="text-red-500 text-sm mt-1">{errors.technician.message}</p>}
+                            {technicianDisplay && (
+                                <p className="text-xs text-gray-500 mt-1">Selected: {technicianDisplay}</p>
+                            )}
                         </div>
 
                         <div>
-                            <Label htmlFor="assignTo" className='pb-2 text-[#374151]'>Assign to</Label>
-                            <Input
-                                id="assignTo"
-                                placeholder="Enter employee name"
-                                {...register('assignTo')}
-                                className={cn(errors.assignTo && 'border-red-500')}
-                            />
-                            {errors.assignTo && <p className="text-red-500 text-sm mt-1">{errors.assignTo.message}</p>}
+                            <Label>Category</Label>
+                            <RadioGroup
+                                value={watch('category')}
+                                onValueChange={(value) => setValue('category', value)}
+                                className="mt-2 text-[#374151]"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="construction" id="construction" />
+                                    <Label htmlFor="construction">Construction</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="janitorial" id="janitorial" />
+                                    <Label htmlFor="janitorial">Janitorial</Label>
+                                </div>
+                            </RadioGroup>
+                            {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>}
                         </div>
 
+                        <div>
+                            <Label>Hazardous Cleanup</Label>
+                            <RadioGroup
+                                value={watch('hazardousCleanup')}
+                                onValueChange={(value) => setValue('hazardousCleanup', value)}
+                                className="mt-2"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="yes" id="hazardous-yes" />
+                                    <Label htmlFor="hazardous-yes">Yes</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="no" id="hazardous-no" />
+                                    <Label htmlFor="hazardous-no">No</Label>
+                                </div>
+                            </RadioGroup>
+                            {errors.hazardousCleanup && <p className="text-red-500 text-sm mt-1">{errors.hazardousCleanup.message}</p>}
+                        </div>
 
+                        <div>
+                            <Label>Priority</Label>
+                            <RadioGroup
+                                value={watch('priority')}
+                                onValueChange={(value) => setValue('priority', value)}
+                                className="mt-2"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="normal" id="normal" />
+                                    <Label htmlFor="normal">Normal</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="urgent" id="urgent" />
+                                    <Label htmlFor="urgent">Urgent</Label>
+                                </div>
+                            </RadioGroup>
+                            {errors.priority && <p className="text-red-500 text-sm mt-1">{errors.priority.message}</p>}
+                        </div>
 
-
-
-                        {/* Category and Options */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <Label>Category</Label>
-                                <RadioGroup
-                                    value={watch('category')}
-                                    onValueChange={(value) => setValue('category', value)}
-                                    className="mt-2 text-[#374151]"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="construction" id="construction" />
-                                        <Label htmlFor="construction">Construction</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="janitorial" id="janitorial" />
-                                        <Label htmlFor="janitorial">Janitorial</Label>
-                                    </div>
-                                </RadioGroup>
-                                {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>}
-                            </div>
-
-                            <div>
-                                <Label>Hazardous Cleanup</Label>
-                                <RadioGroup
-                                    value={watch('hazardousCleanup')}
-                                    onValueChange={(value) => setValue('hazardousCleanup', value)}
-                                    className="mt-2"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="yes" id="hazardous-yes" />
-                                        <Label htmlFor="hazardous-yes">Yes</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="no" id="hazardous-no" />
-                                        <Label htmlFor="hazardous-no">No</Label>
-                                    </div>
-                                </RadioGroup>
-                                {errors.hazardousCleanup && <p className="text-red-500 text-sm mt-1">{errors.hazardousCleanup.message}</p>}
-                            </div>
-
-                            <div>
-                                <Label>Priority</Label>
-                                <RadioGroup
-                                    value={watch('priority')}
-                                    onValueChange={(value) => setValue('priority', value)}
-                                    className="mt-2"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="normal" id="normal" />
-                                        <Label htmlFor="normal">Normal</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="urgent" id="urgent" />
-                                        <Label htmlFor="urgent">Urgent</Label>
-                                    </div>
-                                </RadioGroup>
-                                {errors.priority && <p className="text-red-500 text-sm mt-1">{errors.priority.message}</p>}
-                            </div>
-
-                            <div>
-                                <Label>Order Type</Label>
-                                <RadioGroup
-                                    value={watch('orderType')}
-                                    onValueChange={(value) => setValue('orderType', value)}
-                                    className="mt-2"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="billable" id="billable" />
-                                        <Label htmlFor="billable">Billable</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="non-billable" id="non-billable" />
-                                        <Label htmlFor="non-billable">Non-Billable</Label>
-                                    </div>
-                                </RadioGroup>
-                                {errors.orderType && <p className="text-red-500 text-sm mt-1">{errors.orderType.message}</p>}
-                            </div>
+                        <div>
+                            <Label>Order Type</Label>
+                            <RadioGroup
+                                value={watch('orderType')}
+                                onValueChange={(value) => setValue('orderType', value)}
+                                className="mt-2"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="billable" id="billable" />
+                                    <Label htmlFor="billable">Billable</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="non-billable" id="non-billable" />
+                                    <Label htmlFor="non-billable">Non-Billable</Label>
+                                </div>
+                            </RadioGroup>
+                            {errors.orderType && <p className="text-red-500 text-sm mt-1">{errors.orderType.message}</p>}
                         </div>
                     </div>
-
-
-
-
 
                     {/* Before Photos */}
                     <div className='border rounded-lg p-5'>
@@ -478,8 +553,22 @@ export default function CreateWorkOrder() {
                                         height={200}
                                         className="w-full h-full cursor-crosshair rounded-lg"
                                         onMouseDown={() => setIsDrawing(true)}
-                                        onMouseUp={() => setIsDrawing(false)}
-                                        onMouseLeave={() => setIsDrawing(false)}
+                                        onMouseUp={() => {
+                                            setIsDrawing(false);
+                                            if (canvasRef) {
+                                                const dataUrl = canvasRef.toDataURL('image/png');
+                                                setSignature(dataUrl);
+                                                setValue('digitalSignature', dataUrl);
+                                            }
+                                        }}
+                                        onMouseLeave={() => {
+                                            setIsDrawing(false);
+                                            if (canvasRef) {
+                                                const dataUrl = canvasRef.toDataURL('image/png');
+                                                setSignature(dataUrl);
+                                                setValue('digitalSignature', dataUrl);
+                                            }
+                                        }}
                                         onMouseMove={(e) => {
                                             if (isDrawing && canvasRef) {
                                                 const ctx = canvasRef.getContext('2d');
@@ -505,8 +594,8 @@ export default function CreateWorkOrder() {
 
                     {/* Submit Button */}
                     <div className="flex justify-end pt-6">
-                        <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-2">
-                            Create Work Order
+                        <Button type="submit" disabled={isPending} className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-2">
+                            {isPending ? 'Creating...' : 'Create Work Order'}
                         </Button>
                     </div>
                 </form>

@@ -1,120 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import WorkOrderDetails from './components/WorkOrderDetails';
+import { useManagerWorkOrderDetail } from '@/hooks/workorder.hook';
 
 const WorkOrderDetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [workOrder, setWorkOrder] = useState(null);
-    const [loading, setLoading] = useState(true);
 
-    // Sample work order data - in a real app, this would come from an API
-    const workOrdersData = [
-        {
-            id: 1,
-            title: "Fix Broken Window - Unit 205",
-            description: "Window in unit 205 has a crack and needs immediate replacement",
-            status: "Completed",
-            priority: "High",
-            type: "Construction",
-            category: "Plumbing",
-            company: "ABC Company",
-            documents: 2,
-            created: "1/15/2024",
-            due: "1/20/2024",
-            jobType: "Regular",
-            isBillable: true,
-            isHazardous: false,
+    const { detail, isLoading, isError, refetch } = useManagerWorkOrderDetail({ id });
+
+    const cleanUrl = (s) => (typeof s === 'string' ? s.replace(/`/g, '').trim() : '');
+
+    // Map API detail to WorkOrderDetails component shape
+    const workOrder = useMemo(() => {
+        if (!detail) return null;
+        const firstTech = Array.isArray(detail?.technicians) && detail.technicians.length > 0 ? detail.technicians[0] : null;
+        const beforePhotos = (detail?.galleries || [])
+            .filter(g => g.type === 'before')
+            .map(g => ({ url: cleanUrl(g.image_path), description: g.description || '' }));
+        return {
+            id: detail.id,
+            title: detail.title,
+            description: detail.description,
+            status: detail.status,
+            priority: detail.priority,
+            category: detail.category || detail.fequency_job_type,
+            jobType: detail.job_type,
+            created: detail?.created_at || '',
+            due: detail?.due_date || '',
+            followUp: detail?.follow_up_date || '',
+            isBillable: detail?.order_type === 'Bilable',
+            isHazardous: Boolean(detail?.hazardous_cleanup),
+            hourlyRate: detail?.hourly_rate,
+            totalWorkHours: detail?.total_work_hours,
+            totalCost: detail?.total_cost,
             initiator: {
-                name: "Sarah Johnson",
-                avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face"
+                name: detail?.manager?.name || '—',
+                avatar: cleanUrl(detail?.manager?.avatar) || 'https://mjkasas.softvencefsd.xyz/assets/img/user_placeholder.png',
             },
             assignee: {
-                name: "Mike Davis",
-                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face"
+                name: firstTech?.name || 'Unassigned',
+                avatar: cleanUrl(firstTech?.avatar) || 'https://mjkasas.softvencefsd.xyz/assets/img/user_placeholder.png',
             },
-            location: "Riverside Apartment Complex",
-            icon: "T",
-            iconColor: "bg-orange-500"
-        },
-        {
-            id: 2,
-            title: "Monthly Floor Cleaning - Lobby",
-            description: "Deep cleaning of main lobby floors",
-            status: "Assigned",
-            priority: "Medium",
-            type: "Janitorial",
-            category: "Cleaning",
-            company: "XYZ Corp",
-            documents: 1,
-            created: "1/10/2024",
-            due: "1/15/2024",
-            jobType: "Regular",
-            isBillable: true,
-            isHazardous: false,
-            initiator: {
-                name: "David Brown",
-                avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face"
-            },
-            assignee: {
-                name: "Lisa Wilson",
-                avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face"
-            },
-            location: "Downtown Office Complex",
-            icon: "🌿",
-            iconColor: "bg-green-500"
-        },
-        {
-            id: 3,
-            title: "Hazardous Material Cleanup - Basement",
-            description: "Chemical spill cleanup in basement storage area",
-            status: "Unassigned",
-            priority: "High",
-            type: "Construction",
-            category: "Hazardous",
-            company: "DEF Industries",
-            documents: 3,
-            created: "1/16/2024",
-            due: "1/17/2024",
-            jobType: "Davis Bacon",
-            isBillable: true,
-            isHazardous: true,
-            initiator: {
-                name: "Sarah Johnson",
-                avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face"
-            },
-            assignee: {
-                name: "Mike Davis",
-                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face"
-            },
-            location: "Industrial Park Building A",
-            icon: "T",
-            iconColor: "bg-orange-500"
-        }
-    ];
-
-    useEffect(() => {
-        // Simulate API call
-        const fetchWorkOrder = async () => {
-            setLoading(true);
-            // Simulate network delay
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            const foundWorkOrder = workOrdersData.find(wo => wo.id === parseInt(id));
-            setWorkOrder(foundWorkOrder);
-            setLoading(false);
+            location: detail?.location || '—',
+            documents: (detail?.galleries || []).length,
+            signature: cleanUrl(detail?.signature || ''),
+            beforePhotos,
         };
-
-        fetchWorkOrder();
-    }, [id]);
+    }, [detail]);
 
     const handleBackToList = () => {
         navigate('/work-order');
     };
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-center">
@@ -125,7 +66,7 @@ const WorkOrderDetailsPage = () => {
         );
     }
 
-    if (!workOrder) {
+    if (isError || !workOrder) {
         return (
             <div className="space-y-6">
                 {/* Back Button */}
@@ -143,10 +84,15 @@ const WorkOrderDetailsPage = () => {
                 {/* Not Found */}
                 <div className="text-center py-12">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Work Order Not Found</h2>
-                    <p className="text-gray-600 mb-6">The work order you're looking for doesn't exist.</p>
-                    <Button onClick={handleBackToList} className="bg-purple-600 hover:bg-purple-700">
-                        Back to Work Orders
-                    </Button>
+                    <p className="text-gray-600 mb-6">The work order you're looking for doesn't exist or failed to load.</p>
+                    <div className="space-x-2">
+                        <Button onClick={handleBackToList} className="bg-purple-600 hover:bg-purple-700">
+                            Back to Work Orders
+                        </Button>
+                        <Button variant="outline" onClick={() => refetch()}>
+                            Retry
+                        </Button>
+                    </div>
                 </div>
             </div>
         );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Eye, Filter, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -6,97 +6,60 @@ import { Input } from '@/components/ui/input';
 import WorkOrderCard from './components/WorkOrderCard';
 import { useNavigate } from 'react-router';
 import { Plus } from 'lucide-react';
+import { useManagerWorkOrders } from '@/hooks/workorder.hook';
 
 const WorkOrder = () => {
-    // Sample work order data - in a real app, this would come from an API
-    const workOrders = [
-        {
-            id: 1,
-            title: "Fix Broken Window - Unit 205",
-            description: "Window in unit 205 has a crack and needs immediate replacement",
-            status: "Completed",
-            priority: "High",
-            type: "Construction",
-            category: "Plumbing",
-            company: "ABC Company",
-            documents: 2,
-            created: "1/15/2024",
-            due: "1/20/2024",
-            jobType: "Regular",
-            isBillable: true,
-            isHazardous: false,
-            initiator: {
-                name: "Sarah Johnson",
-                avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face"
-            },
-            assignee: {
-                name: "Mike Davis",
-                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face"
-            },
-            location: "Riverside Apartment Complex",
-            icon: "T",
-            iconColor: "bg-orange-500"
-        },
-        {
-            id: 2,
-            title: "Monthly Floor Cleaning - Lobby",
-            description: "Deep cleaning of main lobby floors",
-            status: "Assigned",
-            priority: "Medium",
-            type: "Janitorial",
-            category: "Cleaning",
-            company: "XYZ Corp",
-            documents: 1,
-            created: "1/10/2024",
-            due: "1/15/2024",
-            jobType: "Regular",
-            isBillable: true,
-            isHazardous: false,
-            initiator: {
-                name: "David Brown",
-                avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face"
-            },
-            assignee: {
-                name: "Lisa Wilson",
-                avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face"
-            },
-            location: "Downtown Office Complex",
-            icon: "🌿",
-            iconColor: "bg-green-500"
-        },
-        {
-            id: 3,
-            title: "Hazardous Material Cleanup - Basement",
-            description: "Chemical spill cleanup in basement storage area",
-            status: "Unassigned",
-            priority: "High",
-            type: "Construction",
-            category: "Hazardous",
-            company: "DEF Industries",
-            documents: 3,
-            created: "1/16/2024",
-            due: "1/17/2024",
-            jobType: "Davis Bacon",
-            isBillable: true,
-            isHazardous: true,
-            initiator: {
-                name: "Sarah Johnson",
-                avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face"
-            },
-            assignee: {
-                name: "Mike Davis",
-                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face"
-            },
-            location: "Industrial Park Building A",
-            icon: "T",
-            iconColor: "bg-orange-500"
-        }
-    ];
     const navigate = useNavigate();
+
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(5);
+
+    const { workOrders, pageInfo, isLoading, isError, refetch } = useManagerWorkOrders({ page, perPage });
+
+    // Helper to sanitize API avatar URLs that may include backticks/spaces
+    const cleanUrl = (s) => (typeof s === 'string' ? s.replace(/`/g, '').trim() : '');
+
+    // Map API fields to card props
+    const cards = useMemo(() => {
+        return (workOrders || []).map((wo) => {
+            const category = wo?.category || wo?.fequency_job_type || '';
+            const iconColor = category === 'Construction' ? 'bg-orange-500' : category === 'Janitorial' ? 'bg-green-500' : 'bg-gray-500';
+            const icon = category === 'Construction' ? 'T' : category === 'Janitorial' ? '🌿' : 'W';
+            const firstTech = Array.isArray(wo?.technicians) && wo.technicians.length > 0 ? wo.technicians[0] : null;
+
+            return {
+                id: wo.id,
+                title: wo.title,
+                description: wo.description,
+                status: wo.status || 'Assigned',
+                isHazardous: Boolean(wo?.hazardous_cleanup),
+                isBillable: (wo?.order_type === 'Bilable'),
+                created: wo?.created_at || '—',
+                jobType: wo?.job_type || '—',
+                due: wo?.due_date || '—',
+                initiator: {
+                    name: wo?.manager?.name || '—',
+                    avatar: cleanUrl(wo?.manager?.avatar) || 'https://mjkasas.softvencefsd.xyz/assets/img/user_placeholder.png',
+                },
+                assignee: {
+                    name: firstTech?.name || 'Unassigned',
+                    avatar: cleanUrl(firstTech?.avatar) || 'https://mjkasas.softvencefsd.xyz/assets/img/user_placeholder.png',
+                },
+                location: wo?.location || '—',
+                icon,
+                iconColor,
+            };
+        });
+    }, [workOrders]);
 
     const handleCreateWorkOrder = () => {
         navigate('/create-work-order');
     };
+
+    const handlePrev = () => setPage((p) => Math.max(1, p - 1));
+    const handleNext = () => setPage((p) => Math.min(pageInfo?.lastPage || p + 1, p + 1));
+
     // Show list view
     return (
         <div className="space-y-6">
@@ -190,17 +153,52 @@ const WorkOrder = () => {
                             Non-billing
                         </Button>
                     </div>
+                    {/* Per Page */}
+                    <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">Per page</span>
+                        <Select value={String(perPage)} onValueChange={(v) => { setPerPage(Number(v)); setPage(1); }}>
+                            <SelectTrigger className='w-24'>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="5">5</SelectItem>
+                                <SelectItem value="10">10</SelectItem>
+                                <SelectItem value="20">20</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
 
             {/* Work Orders List */}
             <div className="space-y-4">
-                {workOrders.map((workOrder) => (
+                {isLoading && (
+                    <div className="text-gray-500">Loading work orders...</div>
+                )}
+                {isError && (
+                    <div className="flex items-center justify-between p-4 border rounded">
+                        <span className="text-red-600">Failed to load work orders.</span>
+                        <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
+                    </div>
+                )}
+                {!isLoading && !isError && cards.length === 0 && (
+                    <div className="text-gray-500">No work orders found.</div>
+                )}
+                {!isLoading && !isError && cards.map((workOrder) => (
                     <WorkOrderCard
                         key={workOrder.id}
                         workOrder={workOrder}
                     />
                 ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between pt-2">
+                <div className="text-sm text-gray-600">Page {pageInfo?.currentPage || page} of {pageInfo?.lastPage || 1}</div>
+                <div className="space-x-2">
+                    <Button variant="outline" size="sm" onClick={handlePrev} disabled={(pageInfo?.currentPage || 1) <= 1}>Prev</Button>
+                    <Button variant="outline" size="sm" onClick={handleNext} disabled={(pageInfo?.currentPage || 1) >= (pageInfo?.lastPage || 1)}>Next</Button>
+                </div>
             </div>
         </div>
     );
