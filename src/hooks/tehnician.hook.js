@@ -166,3 +166,45 @@ export const useTechnicianCompletedOrders = ({ page = 1, perPage = 5, enabled = 
 
   return { ...query, completedOrders: list, pageInfo };
 };
+
+// Dashboard summary: assigned, pending, overdue, completion_rate
+export const useTechnicianDashboardSummary = ({ enabled = true } = {}) => {
+  const query = useQuery({
+    queryKey: ["technician-dashboard-summary"],
+    enabled,
+    queryFn: async () => {
+      const res = await axiosPrivate.get("/technician/dashboard");
+      return res.data;
+    },
+  });
+  const summary = query.data?.data || null;
+  return { ...query, summary };
+};
+
+// Upcoming deadlines list
+export const useTechnicianUpcomingDeadlines = ({ enabled = true } = {}) => {
+  const query = useQuery({
+    queryKey: ["technician-dashboard-deadlines"],
+    enabled,
+    queryFn: async () => {
+      const res = await axiosPrivate.get("/technician/dashboard/deadlines");
+      return res.data;
+    },
+  });
+  const deadlines = Array.isArray(query.data?.data) ? query.data?.data : [];
+  return { ...query, deadlines };
+};
+
+// Newly assigned tasks list
+export const useTechnicianNewAssign = ({ enabled = true } = {}) => {
+  const query = useQuery({
+    queryKey: ["technician-dashboard-new-assign"],
+    enabled,
+    queryFn: async () => {
+      const res = await axiosPrivate.get("/technician/dashboard/new-assign");
+      return res.data;
+    },
+  });
+  const tasks = Array.isArray(query.data?.data) ? query.data?.data : [];
+  return { ...query, tasks };
+};
