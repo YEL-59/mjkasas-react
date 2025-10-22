@@ -35,12 +35,15 @@ import logo from "@/assets/images/logo.png";
 import Lightincon from "@/assets/svg/light";
 
 const UnifiedLayout = () => {
-    const { userRole, logout } = useUser();
+    const { userRole, userInfo, logout } = useUser();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const location = useLocation();
+
+    // Helper to format role label
+    const roleLabel = userRole === "technician" ? "Technician" : userRole === "manager" ? "Manager" : "User";
 
     // Dynamic configuration based on user role
     const getRoleConfig = () => {
@@ -48,11 +51,6 @@ const UnifiedLayout = () => {
             case "technician":
                 return {
                     basePath: "/technician",
-                    userInfo: {
-                        name: "John Doe",
-                        role: "Technician",
-                        email: "john.doe@example.com"
-                    },
                     navigationItems: [
                         { name: "Dashboard", icon: Home, href: "/technician" },
                         { name: "Work Order", icon: ClipboardList, href: "/technician/work-order" },
@@ -61,18 +59,13 @@ const UnifiedLayout = () => {
                         { name: "Settings", icon: MessageCircle, href: "/technician/settings" },
                     ],
                     showCreateInspection: false,
-                    headerTitle: "Technician Dashboard"
+                    headerTitle: "Technician Dashboard",
                 };
 
             case "manager":
             default:
                 return {
                     basePath: "/",
-                    userInfo: {
-                        name: "John Doe",
-                        role: "Manager",
-                        email: "john.doe@example.com"
-                    },
                     navigationItems: [
                         { name: "Dashboard", icon: Home, href: "/" },
                         { name: "Work Order", icon: ClipboardList, href: "/work-order" },
@@ -83,7 +76,7 @@ const UnifiedLayout = () => {
                         { name: "Settings", icon: MessageCircle, href: "/settings" },
                     ],
                     showCreateInspection: true,
-                    headerTitle: "Manager Dashboard"
+                    headerTitle: "Manager Dashboard",
                 };
         }
     };
@@ -97,25 +90,25 @@ const UnifiedLayout = () => {
             title: "New Work Order Assigned",
             description: "HVAC Repair at Greenpoint Plaza has been assigned to you.",
             time: "5m ago",
-            isRead: false
+            isRead: false,
         },
         {
             id: 2,
             title: "Task Completed",
             description: "Lighting maintenance at Building B has been completed.",
             time: "1h ago",
-            isRead: false
+            isRead: false,
         },
         {
             id: 3,
             title: "Equipment Update",
             description: "New tools have been added to your inventory.",
             time: "2h ago",
-            isRead: true
-        }
+            isRead: true,
+        },
     ];
 
-    const unreadCount = notifications.filter(n => !n.isRead).length;
+    // const unreadCount = notifications.filter(n => !n.isRead).length;
 
     const SidebarContent = () => (
         <div className={`bg-[#F9FAFB] shadow-lg border-r h-screen flex flex-col transition-all duration-300 ${isSidebarCollapsed ? 'w-16' : 'w-64'}`}>
@@ -127,14 +120,6 @@ const UnifiedLayout = () => {
                             <img src={logo} alt="GBRANDS" className="h-8 w-auto" />
                         </div>
                     )}
-                    {/* <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                        className="p-1 hover:bg-gray-100 rounded"
-                    >
-                        {isSidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-                    </Button> */}
                 </div>
             </div>
 
@@ -231,9 +216,6 @@ const UnifiedLayout = () => {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="relative bg-transparent border border-[#EAECF0] hover:bg-gray-200 rounded-full p-5">
                                         <Bell className="h-5 w-5" />
-                                        {/* {unreadCount > 0 && (
-                                            <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-                                        )} */}
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-80 p-0" align="end" forceMount>
@@ -250,7 +232,7 @@ const UnifiedLayout = () => {
                                         {notifications.map((notification) => (
                                             <div
                                                 key={notification.id}
-                                                className={`p-4 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer ${!notification.isRead ? 'bg-blue-50' : ''
+                                                className={`p-4 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer ${!notification.isRead ? 'bg-blue-50' : ''}
                                                     }`}
                                             >
                                                 <div className="flex items-start space-x-3">
@@ -302,8 +284,8 @@ const UnifiedLayout = () => {
 
                                 {/* User Info */}
                                 <div className="text-sm">
-                                    <div className="font-bold text-gray-900">{roleConfig.userInfo.name}</div>
-                                    <div className="text-gray-500">{roleConfig.userInfo.role}</div>
+                                    <div className="font-bold text-gray-900">{userInfo?.name || "—"}</div>
+                                    <div className="text-gray-500">{roleLabel}</div>
                                 </div>
 
                                 {/* Dropdown Menu */}
@@ -316,9 +298,9 @@ const UnifiedLayout = () => {
                                     <DropdownMenuContent className="w-56" align="end" forceMount>
                                         <DropdownMenuLabel className="font-normal">
                                             <div className="flex flex-col space-y-1">
-                                                <p className="text-sm font-medium leading-none">{roleConfig.userInfo.name}</p>
+                                                <p className="text-sm font-medium leading-none">{userInfo?.name || "—"}</p>
                                                 <p className="text-xs leading-none text-muted-foreground">
-                                                    {roleConfig.userInfo.email}
+                                                    {userInfo?.email || "—"}
                                                 </p>
                                             </div>
                                         </DropdownMenuLabel>
@@ -358,8 +340,8 @@ const UnifiedLayout = () => {
                                                     <User className="h-4 w-4 text-blue-600" />
                                                 </div>
                                                 <div className="flex flex-col space-y-1">
-                                                    <p className="text-sm font-medium leading-none">{roleConfig.userInfo.name}</p>
-                                                    <p className="text-xs leading-none text-muted-foreground">{roleConfig.userInfo.role}</p>
+                                                    <p className="text-sm font-medium leading-none">{userInfo?.name || "—"}</p>
+                                                    <p className="text-xs leading-none text-muted-foreground">{roleLabel}</p>
                                                 </div>
                                             </div>
                                         </DropdownMenuLabel>

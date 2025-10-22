@@ -9,52 +9,23 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useTechnicianWorkOrders } from '@/hooks/tehnician.hook';
 
 const Workorder = () => {
     const navigate = useNavigate();
 
-    // Mock work order data matching the image
-    const workOrders = [
-        {
-            id: 'WO-884',
-            title: 'Fire Safety Equipment Check',
-            dueDate: 'July 25, 2024',
-            priority: 'Normal',
-            status: 'Assigned'
-        },
-        {
-            id: 'WO-885',
-            title: 'Emergency Lighting Test',
-            dueDate: 'July 26, 2024',
-            priority: 'Urgent',
-            status: 'Assigned'
-        },
-        {
-            id: 'WO-887',
-            title: 'Water Pump Inspection',
-            dueDate: 'July 30, 2024',
-            priority: 'Normal',
-            status: 'Assigned'
-        },
-        {
-            id: 'WO-889',
-            title: 'Parking Lot Light Repair',
-            dueDate: 'July 29, 2024',
-            priority: 'Normal',
-            status: 'Assigned'
-        },
-        {
-            id: 'WO-890',
-            title: 'Window repair in unit 205',
-            dueDate: 'July 30, 2024',
-            priority: 'Normal',
-            status: 'Assigned'
-        }
-    ];
+    // Fetch API-driven work orders
+    const [page, setPage] = useState(1);
+    const { workOrders, pageInfo, isLoading, isError, error } = useTechnicianWorkOrders({ page, perPage: 15 });
+
+    const formatDate = (iso) => {
+        if (!iso) return '-';
+        const d = new Date(iso);
+        return isNaN(d.getTime()) ? iso : d.toLocaleDateString();
+    };
 
     const handleViewDetails = (workOrderId) => {
-        console.log('Viewing details for:', workOrderId);
-        // Navigate to work order details page
+        // Navigate to work order details page with numeric id
         navigate(`/technician/work-order/${workOrderId}`);
     };
 
@@ -65,6 +36,13 @@ const Workorder = () => {
                 <h1 className="text-2xl font-bold text-gray-900">Work Orders</h1>
                 <p className="text-gray-600 mt-2">Track all work orders across your facilities</p>
             </div>
+
+            {/* Error State */}
+            {isError && (
+                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-red-700">
+                    {error?.message || 'Failed to load work orders.'}
+                </div>
+            )}
 
             {/* Work Orders Table */}
             <div className="bg-white rounded-lg shadow-sm border">
@@ -80,45 +58,78 @@ const Workorder = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {workOrders.map((workOrder) => (
-                            <TableRow key={workOrder.id} className="hover:bg-gray-50">
-                                <TableCell>
-                                    <span className="text-blue-600 font-medium">
-                                        {workOrder.id}
-                                    </span>
-                                </TableCell>
-                                <TableCell className="font-medium text-gray-900">
-                                    {workOrder.title}
-                                </TableCell>
-                                <TableCell className="text-gray-600">
-                                    {workOrder.dueDate}
-                                </TableCell>
-                                <TableCell>
-                                    {workOrder.priority === 'Urgent' ? (
-                                        <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
-                                            {workOrder.priority}
-                                        </Badge>
-                                    ) : (
-                                        <span className="text-gray-600">{workOrder.priority}</span>
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                                        {workOrder.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <button
-                                        onClick={() => handleViewDetails(workOrder.id)}
-                                        className="text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
-                                    >
-                                        View Details
-                                    </button>
-                                </TableCell>
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="text-center text-gray-600 py-6">Loading work orders...</TableCell>
                             </TableRow>
-                        ))}
+                        ) : workOrders?.length ? (
+                            workOrders.map((workOrder) => (
+                                <TableRow key={workOrder.id} className="hover:bg-gray-50">
+                                    <TableCell>
+                                        <span className="text-blue-600 font-medium">
+                                            {workOrder.uid || workOrder.id}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell className="font-medium text-gray-900">
+                                        {workOrder.title}
+                                    </TableCell>
+                                    <TableCell className="text-gray-600">
+                                        {formatDate(workOrder.due_date)}
+                                    </TableCell>
+                                    <TableCell>
+                                        {workOrder.priority === 'Urgent' ? (
+                                            <Badge className="bg-red-100 text-red-800 hover:bg-red-100">
+                                                {workOrder.priority}
+                                            </Badge>
+                                        ) : (
+                                            <span className="text-gray-600">{workOrder.priority || 'Normal'}</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                                            {workOrder.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <button
+                                            onClick={() => handleViewDetails(workOrder.id)}
+                                            className="text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+                                        >
+                                            View Details
+                                        </button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={6} className="text-center text-gray-600 py-6">No work orders found.</TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                    Page {pageInfo?.currentPage ?? page} of {pageInfo?.lastPage ?? 1}
+                </div>
+                <div className="space-x-2">
+                    <button
+                        disabled={(pageInfo?.currentPage ?? page) <= 1}
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        className="px-3 py-1 border rounded disabled:opacity-50"
+                    >
+                        Previous
+                    </button>
+                    <button
+                        disabled={(pageInfo?.currentPage ?? page) >= (pageInfo?.lastPage ?? 1)}
+                        onClick={() => setPage((p) => p + 1)}
+                        className="px-3 py-1 border rounded disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
             </div>
         </div>
     );
