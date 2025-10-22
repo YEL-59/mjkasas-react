@@ -6,21 +6,30 @@ import { axiosPrivate } from "@/lib/axios.config";
 export const mapToApiPayload = (values) => {
   // Map enums and formatting
   const jobType = values.jobType; // Expecting exact API values
-  const category = values.category === "construction" || values.category === "Construction"
-    ? "Construction"
-    : values.category === "janitorial" || values.category === "Janitorial"
-    ? "Janitorial"
-    : values.category;
+  const category =
+    values.category === "construction" || values.category === "Construction"
+      ? "Construction"
+      : values.category === "janitorial" || values.category === "Janitorial"
+      ? "Janitorial"
+      : values.category;
 
-  const orderType = values.orderType === "billable" || values.orderType === "Bilable"
-    ? "Bilable"
-    : values.orderType === "non-billable" || values.orderType === "Non bilable"
-    ? "Non bilable"
-    : values.orderType;
+  const orderType =
+    values.orderType === "billable" || values.orderType === "Bilable"
+      ? "Bilable"
+      : values.orderType === "non-billable" ||
+        values.orderType === "Non bilable"
+      ? "Non bilable"
+      : values.orderType;
 
-  const priority = values.priority === "urgent" || values.priority === "Urgent" ? "Urgent" : "Normal";
+  const priority =
+    values.priority === "urgent" || values.priority === "Urgent"
+      ? "Urgent"
+      : "Normal";
 
-  const hazardousCleanup = values.hazardousCleanup === "yes" || values.hazardousCleanup === true ? 1 : 0;
+  const hazardousCleanup =
+    values.hazardousCleanup === "yes" || values.hazardousCleanup === true
+      ? 1
+      : 0;
 
   // Dates: format as YYYY-M-D (to match example)
   const formatDate = (d) => {
@@ -56,7 +65,8 @@ export const mapToApiPayload = (values) => {
     title: values.title,
     description: values.description,
     job_type: jobType,
-    hourly_rate: values.hourlyRate != null ? String(values.hourlyRate) : undefined,
+    hourly_rate:
+      values.hourlyRate != null ? String(values.hourlyRate) : undefined,
     due_date: formatDate(values.dueDate),
     follow_up_date: formatDate(values.followUpDate),
     location: values.location,
@@ -109,7 +119,8 @@ export const useCreateWorkOrder = () => {
     },
     onError: (error) => {
       const resp = error?.response?.data;
-      const message = resp?.message || error.message || "Failed to create work order";
+      const message =
+        resp?.message || error.message || "Failed to create work order";
       toast.error(message);
     },
   });
@@ -155,40 +166,90 @@ export const useManagerWorkOrderDetail = ({ id, enabled = true }) => {
 };
 
 export const useUpdateWorkOrder = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async ({ id, data }) => {
-            const response = await axiosPrivate.put(`/manager/work-order/${id}`, data);
-            return response.data;
-        },
-        onSuccess: () => {
-            toast.success("Work order updated successfully");
-            // Correct query keys to match list and detail hooks
-            queryClient.invalidateQueries({ queryKey: ['manager-work-orders'] });
-            queryClient.invalidateQueries({ queryKey: ['manager-work-order-detail'] });
-        },
-        onError: (error) => {
-            toast.error(error.response?.data?.message || "Failed to update work order");
-        },
-    });
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await axiosPrivate.put(
+        `/manager/work-order/${id}`,
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Work order updated successfully");
+      // Correct query keys to match list and detail hooks
+      queryClient.invalidateQueries({ queryKey: ["manager-work-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["manager-work-order-detail"],
+      });
+    },
+    onError: (error) => {
+      toast.error(
+        error.response?.data?.message || "Failed to update work order"
+      );
+    },
+  });
 };
 
 export const useDeleteWorkOrder = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: async (workOrderId) => {
-            const response = await axiosPrivate.delete(`/manager/work-order/${workOrderId}`);
-            return response.data;
-        },
-        onSuccess: () => {
-            toast.success("Work order deleted successfully");
-            // Invalidate work orders list to trigger refetch
-            queryClient.invalidateQueries({ queryKey: ['manager-work-orders'] });
-        },
-        onError: (error) => {
-            toast.error(error.response?.data?.message || "Failed to delete work order");
-        },
-    });
+  return useMutation({
+    mutationFn: async (workOrderId) => {
+      const response = await axiosPrivate.delete(
+        `/manager/work-order/${workOrderId}`
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Work order deleted successfully");
+      // Invalidate work orders list to trigger refetch
+      queryClient.invalidateQueries({ queryKey: ["manager-work-orders"] });
+    },
+    onError: (error) => {
+      toast.error(
+        error.response?.data?.message || "Failed to delete work order"
+      );
+    },
+  });
+};
+
+// Completed orders: fetch manager completed work orders
+export const useManagerCompletedOrders = ({ page = 1, perPage = 5, enabled = true }) => {
+  const query = useQuery({
+    queryKey: ["manager-completed-orders", { page, perPage }],
+    enabled,
+    queryFn: async () => {
+      const res = await axiosPrivate.get("/manager/complete-order", {
+        params: { per_page: perPage, page },
+      });
+      return res.data;
+    },
+  });
+
+  const raw = query.data;
+  const list = raw?.data?.data || [];
+  const pageInfo = {
+    currentPage: raw?.data?.current_page ?? page,
+    lastPage: raw?.data?.last_page ?? 1,
+    total: raw?.data?.total ?? list.length,
+    perPage: raw?.data?.per_page ?? perPage,
+  };
+
+  return { ...query, completedOrders: list, pageInfo };
+};
+
+// Single: fetch technician work order detail
+export const useTechnicianWorkOrderDetail = ({ id, enabled = true }) => {
+  const query = useQuery({
+    queryKey: ["technician-work-order-detail", { id }],
+    enabled: enabled && !!id,
+    queryFn: async () => {
+      const res = await axiosPrivate.get(`/technician/work-order/${id}`);
+      return res.data;
+    },
+  });
+
+  return { ...query, detail: query.data?.data };
 };

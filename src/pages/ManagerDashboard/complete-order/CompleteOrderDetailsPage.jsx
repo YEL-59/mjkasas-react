@@ -4,34 +4,85 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Download, CheckCircle, Calendar, User, MapPin, AlertTriangle } from 'lucide-react';
+import { useTechnicianWorkOrderDetail } from '@/hooks/workorder.hook';
 
 const CompleteOrderDetailsPage = () => {
-    const { orderId } = useParams();
+    const { id } = useParams();
     const navigate = useNavigate();
 
-    // Mock data for the specific order
+    const { detail, isLoading, isError, refetch } = useTechnicianWorkOrderDetail({ id });
+
+    const placeholderImg = 'https://mjkasas.softvencefsd.xyz/assets/img/user_placeholder.png';
+    const safeSrc = (src) => {
+        if (!src) return placeholderImg;
+        return String(src).replace(/`/g, '').trim();
+    };
+    const formatDateLong = (d) => {
+        if (!d) return '—';
+        try {
+            return new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        } catch {
+            return String(d);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading order details...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen">
+                <p className="text-red-600 mb-4">Failed to load work order</p>
+                <div className="space-x-2">
+                    <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+                    <Button variant="ghost" onClick={() => navigate('/completed-orders')}>Back</Button>
+                </div>
+            </div>
+        );
+    }
+
+    if (!detail) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen">
+                <p className="text-gray-600 mb-4">Work order not found</p>
+                <button
+                    onClick={() => navigate('/completed-orders')}
+                    className="text-blue-600 hover:underline"
+                >
+                    Back to Completed Orders
+                </button>
+            </div>
+        );
+    }
+
+    const beforePhotos = (detail?.galleries || []).filter(g => g.type === 'before').map(g => safeSrc(g.image_path));
+    const afterPhotos = (detail?.galleries || []).filter(g => g.type === 'after').map(g => safeSrc(g.image_path));
+
     const orderDetails = {
-        id: 'WO-004',
-        title: 'Fire Safety Equipment Check',
-        category: 'Construction',
-        jobType: 'Regular Wage',
-        dueDate: 'July 28, 2025',
-        completedBy: 'John Mitchell',
-        hazardousCleanup: 'No',
-        completedDate: 'July 30, 2025',
-        description: 'Complete inspection of all fire safety equipment including extinguishers, alarm systems, and emergency exits. Verify all equipment is functional and properly maintained.',
-        completionNotes: 'All fire safety equipment inspected and found to be in excellent condition. Replaced two expired fire extinguishers in the east wing. Updated maintenance logs and tested all alarm systems successfully.',
-        beforePhotos: [
-            '/api/placeholder/300/200?text=Before+Photo+1',
-            '/api/placeholder/300/200?text=Before+Photo+2',
-            '/api/placeholder/300/200?text=Before+Photo+3'
-        ],
-        afterPhotos: [
-            '/api/placeholder/300/200?text=After+Photo+1',
-            '/api/placeholder/300/200?text=After+Photo+2'
-        ],
-        priority: 'Normal',
-        location: 'Main Building - All Floors'
+        id: detail?.uid || `WO-${detail?.id}`,
+        title: detail?.title || '—',
+        category: detail?.category || detail?.fequency_job_type || '—',
+        jobType: detail?.job_type || '—',
+        dueDate: formatDateLong(detail?.due_date),
+        completedBy: (detail?.technicians || []).map(t => t?.name).join(', ') || detail?.manager?.name || '—',
+        hazardousCleanup: detail?.hazardous_cleanup ? 'Yes' : 'No',
+        completedDate: formatDateLong(detail?.completed_on),
+        description: detail?.description || '—',
+        completionNotes: detail?.complete_note || '—',
+        beforePhotos,
+        afterPhotos,
+        priority: detail?.priority || 'Normal',
+        location: detail?.location || '—',
+        status: detail?.status || '—',
+        signature: safeSrc(detail?.signature),
     };
 
     const handleDownload = (type) => {
@@ -95,7 +146,7 @@ const CompleteOrderDetailsPage = () => {
                                     <CheckCircle className="h-6 w-6 text-green-600" />
                                     <div>
                                         <h1 className="text-2xl font-bold text-gray-900">{orderDetails.title}</h1>
-                                        <p className="text-gray-600">Work Order ID: {orderDetails.id} • Completed</p>
+                                        <p className="text-gray-600">Work Order ID: {orderDetails.id} • {orderDetails.status}</p>
                                     </div>
                                 </div>
                                 <div>
@@ -155,6 +206,7 @@ const CompleteOrderDetailsPage = () => {
                                             src={photo}
                                             alt={`Before photo ${index + 1}`}
                                             className="w-full h-48 object-cover rounded-lg border"
+                                            onError={(e) => { e.currentTarget.src = 'https://mjkasas.softvencefsd.xyz/assets/img/user_placeholder.png'; }}
                                         />
                                     </div>
                                 ))}
@@ -175,6 +227,7 @@ const CompleteOrderDetailsPage = () => {
                                             src={photo}
                                             alt={`After photo ${index + 1}`}
                                             className="w-full h-48 object-cover rounded-lg border"
+                                            onError={(e) => { e.currentTarget.src = 'https://mjkasas.softvencefsd.xyz/assets/img/user_placeholder.png'; }}
                                         />
                                     </div>
                                 ))}
@@ -198,7 +251,7 @@ const CompleteOrderDetailsPage = () => {
                             <CheckCircle className="h-5 w-5 text-green-600" />
                             <span className="text-green-600 font-medium">Work Order Completed Successfully</span>
                         </div>
-                        <span className="text-gray-500 text-sm">Completed on 2024-01-20</span>
+                        <span className="text-gray-500 text-sm">Completed on {orderDetails.completedDate}</span>
                     </div>
                 </div>
             </div>
