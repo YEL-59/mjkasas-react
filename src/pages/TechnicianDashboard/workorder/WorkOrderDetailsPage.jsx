@@ -36,7 +36,7 @@ const WorkOrderDetailsPage = () => {
       hazardousCleanUp: "No",
       description: "Work order description details will be displayed here.",
       employees: [],
-      completionNote: "",
+      complete_note: "",
       signature: "",
     },
   });
@@ -161,7 +161,7 @@ const WorkOrderDetailsPage = () => {
     setValue("description", workOrder.description || "");
 
     // Optional extras
-    setValue("completionNote", workOrder.complete_note ?? "");
+    setValue("complete_note", workOrder.complete_note ?? "");
     setValue("signature", workOrder.signature ?? "");
 
     // Technicians -> employees field array
@@ -256,10 +256,10 @@ const WorkOrderDetailsPage = () => {
     input.click();
   };
 
-  // Remove local before photo only (before section does not persist yet)
-  const handleRemoveBeforePhoto = (id) => {
-    setBeforePhotos((prev) => prev.filter((photo) => photo.id !== id));
-  };
+  //   // Remove local before photo only (before section does not persist yet)
+  //   const handleRemoveBeforePhoto = (id) => {
+  //     setBeforePhotos((prev) => prev.filter((photo) => photo.id !== id));
+  //   };
 
   const handlePhotoUpload = (type, photoId) => {
     const input = document.createElement("input");
@@ -295,15 +295,31 @@ const WorkOrderDetailsPage = () => {
   };
 
   const onSubmit = (data) => {
+    const note = (data?.complete_note ?? "").trim();
+    if (!note) {
+      console.error("Completion note is required");
+      return;
+    }
+    if (!signatureFile) {
+      console.error("Signature image is required");
+      return;
+    }
+    if (!signatureFile.type?.startsWith("image/")) {
+      console.error("Signature must be an image file");
+      return;
+    }
+    console.log("Submitting completion", { workOrderId: id, note, hasSignature: !!signatureFile });
     // Complete work order: send signature image and completion note
     completeWorkOrder(
-      { workOrderId: id, signatureFile, complete_note: data.completionNote },
+      { workOrderId: id, signatureFile, complete_note: note },
       {
-        onSuccess: () => {
+        onSuccess: (res) => {
+          console.log("Complete work order success", res);
           navigate("/technician/work-order");
         },
         onError: (e) => {
-          console.error("Failed to complete work order", e);
+          const payload = e?.response?.data ?? e;
+          console.error("Failed to complete work order", payload);
         },
       }
     );
@@ -565,8 +581,8 @@ const WorkOrderDetailsPage = () => {
       {/* Completion Note Section */}
       <FormSection title="Completion Note">
         <Textarea
-          id="completionNote"
-          {...register("completionNote")}
+          id="complete_note"
+          {...register("complete_note")}
           placeholder="DESCRIBE THE WORK TO BE DONE"
           rows={6}
         />

@@ -1,5 +1,6 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosPrivate } from "@/lib/axios.config";
+
 
 // Fetch technician work orders (paginated)
 export const useTechnicianWorkOrders = ({
@@ -129,13 +130,12 @@ export const useCompleteWorkOrder = () => {
     mutationFn: async ({ workOrderId, signatureFile, complete_note }) => {
       const form = new FormData();
       if (signatureFile) form.append("signature", signatureFile);
-      if (complete_note) form.append("complete_note", complete_note);
+      // Always append complete_note; backend requires the field
+      form.append("complete_note", String(complete_note ?? ""));
+      // Let axios set proper multipart boundaries automatically
       const res = await axiosPrivate.patch(
         `/technician/work-order/${workOrderId}/complete`,
-        form,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+        form
       );
       return res.data;
     },
