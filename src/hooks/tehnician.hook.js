@@ -141,3 +141,28 @@ export const useCompleteWorkOrder = () => {
     },
   });
 };
+
+// Completed orders: fetch technician completed work orders
+export const useTechnicianCompletedOrders = ({ page = 1, perPage = 5, enabled = true } = {}) => {
+  const query = useQuery({
+    queryKey: ["technician-completed-orders", { page, perPage }],
+    enabled,
+    queryFn: async () => {
+      const res = await axiosPrivate.get("/technician/complete-order", {
+        params: { per_page: perPage, page },
+      });
+      return res.data;
+    },
+  });
+
+  const raw = query.data;
+  const list = raw?.data?.data || [];
+  const pageInfo = {
+    currentPage: raw?.data?.current_page ?? page,
+    lastPage: raw?.data?.last_page ?? 1,
+    total: raw?.data?.total ?? list.length,
+    perPage: raw?.data?.per_page ?? perPage,
+  };
+
+  return { ...query, completedOrders: list, pageInfo };
+};
