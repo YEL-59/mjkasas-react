@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { axiosPrivate } from "@/lib/axios.config";
 
-
 // Fetch technician work orders (paginated)
 export const useTechnicianWorkOrders = ({
   page = 1,
@@ -143,7 +142,11 @@ export const useCompleteWorkOrder = () => {
 };
 
 // Completed orders: fetch technician completed work orders
-export const useTechnicianCompletedOrders = ({ page = 1, perPage = 5, enabled = true } = {}) => {
+export const useTechnicianCompletedOrders = ({
+  page = 1,
+  perPage = 5,
+  enabled = true,
+} = {}) => {
   const query = useQuery({
     queryKey: ["technician-completed-orders", { page, perPage }],
     enabled,
