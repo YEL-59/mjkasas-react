@@ -4,33 +4,40 @@ import Managericon1 from '@/assets/svg/managericon1';
 import Managericon2 from '@/assets/svg/managericon2';
 import Managericon3 from '@/assets/svg/managericon3';
 import Managericon4 from '@/assets/svg/managericon4';
+import { useManagerDashboardCounts } from '@/hooks/managerdashboard.hook';
 
 const SummaryCards = () => {
+    const { data: counts, isLoading } = useManagerDashboardCounts();
+    const total = counts?.total_work_orders ?? 0;
+    const pending = counts?.pending_work_orders ?? 0;
+    const inProgress = counts?.in_progress_work_orders ?? 0;
+    const completed = counts?.completed_work_orders ?? 0;
+
     const cardsData = [
         {
             title: 'Total work orders',
-            value: '24,895',
+            value: String(total),
             change: '+12.5%',
             icon: <Managericon1 className="w-6 h-6 text-purple-600" />,
             bgColor: 'bg-[#643DFF]',
         },
         {
             title: 'Pending',
-            value: '384',
+            value: String(pending),
             change: '+8.2%',
             icon: <Managericon2 className="w-6 h-6 text-yellow-600" />,
             bgColor: 'bg-[#F0CB23]',
         },
         {
             title: 'In progress',
-            value: '128',
+            value: String(inProgress),
             change: '+3.7%',
             icon: <Managericon3 className="w-6 h-6 text-blue-600" />,
             bgColor: 'bg-[#2563EB]',
         },
         {
-            title: 'Completion Rates',
-            value: '70%',
+            title: 'Completed',
+            value: String(completed),
             change: '+1.0%',
             icon: <Managericon4 className="w-6 h-6 text-green-600" />,
             bgColor: 'bg-[#16A34A]',
