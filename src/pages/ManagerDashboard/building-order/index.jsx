@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,57 +23,52 @@ import {
     ChevronDown
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useManagerBuildings, useDeleteManagerBuilding } from '@/hooks/managerbuilding.hook';
 
 const BuildingOrder = () => {
     const navigate = useNavigate();
-    const [expandedBuilding, setExpandedBuilding] = useState('building-1');
+    const [expandedBuilding, setExpandedBuilding] = useState(null);
     const [date, setDate] = useState();
+    const [deletingId, setDeletingId] = useState(null);
 
-    // Mock building data
-    const buildings = [
-        {
-            id: 'building-1',
-            name: 'Downtown Office Complex',
-            address: '123 Main Street, Downtown, NY 10001',
-            billingInfo: {
-                name: 'Robert Miller',
-                address1: '123 Business Ave',
-                address2: 'Suite 100'
-            },
-            contactInfo: {
-                name: 'Robert Miller',
-                address1: '123 Business Ave',
-                address2: 'Suite 100'
-            },
-            billingContact: {
-                mobile: '+855-4567',
-                email: 'robert@merpm.com',
-                taxRate: '8.5%'
-            },
-            contactDetails: {
-                mobile: '+856-4567',
-                email: 'robert@merpm.com',
-                taxRate: '8.5%'
-            },
-            notes: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-            attachment: 'Building Contract.pdf'
+    // API-driven buildings
+    const { buildings: apiBuildings, pageData, isLoading, isError } = useManagerBuildings();
+    const { mutateAsync: deleteBuilding, isPending: isDeleting } = useDeleteManagerBuilding();
+
+    const adaptedBuildings = (apiBuildings || []).map((b) => ({
+        id: String(b.id),
+        name: b.company_name || b.name || `Building #${b.id}`,
+        address: [b.address_line_one, b.address_line_tow].filter(Boolean).join(', '),
+        billingInfo: {
+            name: b.company_name || b.name || '',
+            address1: b.address_line_one || '',
+            address2: b.address_line_tow || '',
         },
-        {
-            id: 'building-2',
-            name: 'Westside Shopping Center',
-            address: '456 West Ave, Westside, NY 10002'
+        contactInfo: {
+            name: b.contact_name || '',
+            address1: b.contact_address || '',
+            address2: '',
         },
-        {
-            id: 'building-3',
-            name: 'Industrial Park Building A',
-            address: '789 Industrial Blvd, Industrial District, NY 10003'
+        billingContact: {
+            mobile: b.mobile || '',
+            email: b.email || '',
+            taxRate: b.tex_rate || '',
         },
-        {
-            id: 'building-4',
-            name: 'Riverside Apartment Complex',
-            address: '321 River Road, Riverside, NY 10004'
+        contactDetails: {
+            mobile: '',
+            email: b.contact_email || '',
+            taxRate: '',
+        },
+        notes: b.note || '',
+        attachment: null,
+    }));
+
+    useEffect(() => {
+        if (!expandedBuilding && adaptedBuildings.length) {
+            setExpandedBuilding(String(adaptedBuildings[0]?.id));
         }
-    ];
+    }, [adaptedBuildings, expandedBuilding]);
+    // replaced with API-driven data above
 
     const handleAddBuilding = () => {
         navigate('/buildings/add');
@@ -83,9 +78,15 @@ const BuildingOrder = () => {
         navigate(`/buildings/edit/${buildingId}`);
     };
 
-    const handleDeleteBuilding = (buildingId) => {
-        // Handle delete functionality
-        console.log('Delete building:', buildingId);
+    const handleDeleteBuilding = async (buildingId) => {
+        try {
+            setDeletingId(buildingId);
+            await deleteBuilding({ id: buildingId });
+        } catch (error) {
+            console.error('Delete building failed:', error);
+        } finally {
+            setDeletingId(null);
+        }
     };
 
     return (
@@ -159,6 +160,8 @@ const BuildingOrder = () => {
             </div>
 
             {/* Buildings Accordion */}
+            {isLoading && (<div className="p-4">Loading buildings...</div>)}
+            {isError && (<div className="p-4 text-red-600">Failed to load buildings.</div>)}
             <Accordion
                 type="single"
                 collapsible
@@ -166,7 +169,7 @@ const BuildingOrder = () => {
                 onValueChange={setExpandedBuilding}
                 className="space-y-4"
             >
-                {buildings.map((building, index) => (
+                {adaptedBuildings.map((building) => (
                     <AccordionItem key={building.id} value={building.id} className="border rounded-lg">
                         <AccordionTrigger className="px-6 py-4 hover:no-underline">
                             <div className="flex items-center justify-between w-full">
@@ -192,6 +195,7 @@ const BuildingOrder = () => {
                                     <Button
                                         variant="ghost"
                                         size="sm"
+                                        disabled={isDeleting && deletingId === building.id}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleDeleteBuilding(building.id);

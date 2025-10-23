@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Plus } from 'lucide-react';
+import { useCreateManagerBuilding } from '@/hooks/managerbuilding.hook';
 
 const AddBuilding = () => {
     const navigate = useNavigate();
@@ -25,6 +26,8 @@ const AddBuilding = () => {
         contactNotes: ''
     });
 
+    const { mutateAsync: createBuilding, isPending } = useCreateManagerBuilding();
+
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
@@ -32,11 +35,40 @@ const AddBuilding = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Handle form submission
-        console.log('Form data:', formData);
-        navigate('/buildings');
+
+        // Compute contact fields based on sameAsBilling
+        const contact_name = sameAsBilling ? formData.billingName : formData.contactName;
+        const contact_address = sameAsBilling
+            ? [formData.billingAddress1, formData.billingAddress2].filter(Boolean).join(', ')
+            : formData.contactAddress;
+        const contact_email = sameAsBilling ? formData.billingEmail : formData.contactEmail;
+        const contact_note = sameAsBilling ? formData.billingNotes : formData.contactNotes;
+
+        const payload = {
+            company_name: formData.companyName,
+            tex_rate: formData.taxRate,
+            name: formData.billingName,
+            address_line_one: formData.billingAddress1,
+            address_line_tow: formData.billingAddress2,
+            mobile: formData.billingMobile,
+            email: formData.billingEmail,
+            note: formData.billingNotes,
+            contact_name,
+            contact_address,
+            contact_email,
+            contact_note,
+        };
+
+        try {
+            const res = await createBuilding(payload);
+            // Navigate back to buildings list on success
+            navigate('/buildings');
+        } catch (err) {
+            // Errors are handled via toast in hook
+            console.error('Create building failed:', err);
+        }
     };
 
     const handleCancel = () => {
@@ -58,7 +90,7 @@ const AddBuilding = () => {
                     </Button>
                     <div className="h-6 w-px bg-gray-300" />
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Edit Building information</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Create Building</h1>
                     </div>
                 </div>
                 <Button variant="link" className="text-blue-600 hover:text-blue-700">
@@ -226,8 +258,9 @@ const AddBuilding = () => {
                     <Button
                         type="submit"
                         className="px-6 py-2 bg-gray-900 text-white hover:bg-gray-800"
+                        disabled={isPending}
                     >
-                        Update building information
+                        {isPending ? 'Creating...' : 'Create building'}
                     </Button>
                 </div>
             </form>
