@@ -22,6 +22,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useManagerInspections } from '@/hooks/managerinspection.hook';
 
 const Inspection = () => {
     const navigate = useNavigate();
@@ -29,51 +30,22 @@ const Inspection = () => {
     const [status, setStatus] = useState('Assigned');
     const [building, setBuilding] = useState('All Buildings');
 
-    // Mock inspection data
-    const inspections = [
-        {
-            id: 'WO-301',
-            title: 'AC Repair & Maintenance Check',
-            completedDate: 'July 28, 2023',
-            priority: 'Normal'
-        },
-        {
-            id: 'WO-302',
-            title: 'Emergency Lighting Test',
-            completedDate: 'July 28, 2023',
-            priority: 'Urgent'
-        },
-        {
-            id: 'WO-307',
-            title: 'Boiler Water Inspection',
-            completedDate: 'July 28, 2023',
-            priority: 'Normal'
-        },
-        {
-            id: 'WO-308',
-            title: 'Painting and Light Repair',
-            completedDate: 'July 28, 2023',
-            priority: 'Normal'
-        }
-    ];
+    // Fetch inspections from API
+    const { inspections = [], pageInfo, isLoading } = useManagerInspections({ page: 1, perPage: 5 });
 
-    const getPriorityBadgeVariant = (priority) => {
-        switch (priority) {
-            case 'Urgent':
-                return 'destructive';
-            case 'Normal':
-                return 'secondary';
-            default:
-                return 'secondary';
-        }
-    };
-
-    const getPriorityBadgeClass = (priority) => {
-        switch (priority) {
-            case 'Urgent':
-                return 'bg-red-100 text-red-800';
-            case 'Normal':
+    // Map status to badge styles
+    const getStatusBadgeClass = (st) => {
+        switch (st) {
+            case 'Completed':
                 return 'bg-green-100 text-green-800';
+            case 'In Progress':
+                return 'bg-blue-100 text-blue-800';
+            case 'Assigned':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'Cancelled':
+                return 'bg-gray-200 text-gray-800';
+            case 'Incomplete':
+                return 'bg-red-100 text-red-800';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
@@ -160,40 +132,50 @@ const Inspection = () => {
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="font-medium text-gray-900">Work order ID</TableHead>
-                                <TableHead className="font-medium text-gray-900">Title</TableHead>
+                                <TableHead className="font-medium text-gray-900">Customer name</TableHead>
                                 <TableHead className="font-medium text-gray-900">Completed date</TableHead>
-                                <TableHead className="font-medium text-gray-900">Priority</TableHead>
+                                <TableHead className="font-medium text-gray-900">Status</TableHead>
                                 <TableHead className="font-medium text-gray-900">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {inspections.map((inspection) => (
-                                <TableRow key={inspection.id} className="hover:bg-gray-50">
-                                    <TableCell>
-                                        <span
-                                            className="text-blue-600 hover:text-blue-700 cursor-pointer font-medium"
-                                            onClick={() => navigate(`/inspection/${inspection.id}`)}
-                                        >
-                                            {inspection.id}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell className="text-gray-900">{inspection.title}</TableCell>
-                                    <TableCell className="text-gray-600">{inspection.completedDate}</TableCell>
-                                    <TableCell>
-                                        <Badge className={getPriorityBadgeClass(inspection.priority)}>
-                                            {inspection.priority}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span
-                                            className="text-blue-600 hover:text-blue-700 cursor-pointer font-medium"
-                                            onClick={() => navigate(`/inspection/${inspection.id}`)}
-                                        >
-                                            View Details
-                                        </span>
-                                    </TableCell>
+                            {isLoading ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center text-gray-600 py-6">Loading inspections…</TableCell>
                                 </TableRow>
-                            ))}
+                            ) : inspections.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center text-gray-600 py-6">No inspections found</TableCell>
+                                </TableRow>
+                            ) : (
+                                inspections.map((inspection) => (
+                                    <TableRow key={inspection.id} className="hover:bg-gray-50">
+                                        <TableCell>
+                                            <span
+                                                className="text-blue-600 hover:text-blue-700 cursor-pointer font-medium"
+                                                onClick={() => navigate(`/inspection/${inspection.id}`)}
+                                            >
+                                                {inspection.uid || inspection.id}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-gray-900">{inspection.customerName || '—'}</TableCell>
+                                        <TableCell className="text-gray-600">{inspection.dateOfCompletion || '—'}</TableCell>
+                                        <TableCell>
+                                            <Badge className={getStatusBadgeClass(inspection.status)}>
+                                                {inspection.status || '—'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span
+                                                className="text-blue-600 hover:text-blue-700 cursor-pointer font-medium"
+                                                onClick={() => navigate(`/inspection/${inspection.id}`)}
+                                            >
+                                                View Details
+                                            </span>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </div>

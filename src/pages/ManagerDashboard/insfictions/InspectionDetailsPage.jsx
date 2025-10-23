@@ -4,34 +4,32 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, CheckCircle, Download } from 'lucide-react';
+import { useManagerInspectionDetails } from '@/hooks/managerinspectiondetails.hook.js';
 
 const InspectionDetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [showVerifiedForm, setShowVerifiedForm] = useState(false);
 
-    // Mock inspection details data
+    // Fetch inspection details from API
+    const { details, isLoading } = useManagerInspectionDetails({ id });
+
+    // Map API details to UI fields with safe fallbacks
     const inspectionDetails = {
-        id: 'WO-004',
-        title: 'Fire Safety Equipment Check',
-        status: 'Verified',
-        employee: 'John Mitchel',
-        category: 'Construction',
-        jobType: 'Regular Wage',
-        dueDate: 'July 20, 2025',
-        completedBy: 'John Mitchel',
-        hazardousCleanup: 'No',
-        completedDate: 'July 30, 2005',
-        description: 'Complete inspection of all fire safety equipment including extinguishers, alarm systems, and emergency exits. Verify all equipment is functional and properly maintained.',
-        completionNotes: 'All fire safety equipment inspected and found to be in excellent condition. Replaced two expired fire extinguishers in the east wing. Updated maintenance logs and tested all alarm systems successfully.',
-        beforePhotos: [
-            'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop'
-        ],
-        afterPhotos: [
-            'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&h=300&fit=crop',
-            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop'
-        ]
+        id: details?.uid || '',
+        title: 'Inspection Details',
+        status: details?.status || '—',
+        employee: details?.technician?.name || details?.inspector?.name || '—',
+        category: details?.building?.name || '—',
+        jobType: '—',
+        dueDate: details?.dateOfInspection || '—',
+        completedBy: details?.technician?.name || '—',
+        hazardousCleanup: '—',
+        completedDate: details?.dateOfCompletion || '—',
+        description: details?.completeNote || '—',
+        completionNotes: details?.completeNote || '—',
+        beforePhotos: Array.isArray(details?.beforePhotos) ? details.beforePhotos : [],
+        afterPhotos: Array.isArray(details?.afterPhotos) ? details.afterPhotos : [],
     };
 
     const handleVerify = () => {
@@ -42,6 +40,29 @@ const InspectionDetailsPage = () => {
         console.log('Downloading PDF...');
         // Handle PDF download logic here
     };
+
+    if (isLoading) {
+        return (
+            <div className="p-6 space-y-6">
+                <div className="flex items-center space-x-4">
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate('/inspection')}
+                        className="p-2 hover:bg-gray-100 rounded-lg"
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Inspection</h1>
+                        <div className="text-sm text-gray-600">Loading inspection details…</div>
+                    </div>
+                </div>
+                <div className="bg-white rounded-lg shadow-sm border p-6">
+                    <div className="h-24 animate-pulse bg-gray-100 rounded" />
+                </div>
+            </div>
+        );
+    }
 
     if (showVerifiedForm) {
         return (

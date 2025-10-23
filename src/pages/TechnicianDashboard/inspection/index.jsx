@@ -4,6 +4,7 @@ import { Calendar, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTechnicianInspections } from '@/hooks/techinicianinspection.hook.js';
 import {
     Select,
     SelectContent,
@@ -20,43 +21,32 @@ const Inspection = () => {
         date: ''
     });
 
-    // Mock data for inspected work orders
-    const inspectedOrders = [
-        {
-            id: 'WO-004',
-            title: 'Fire Safety Equipment Check',
-            completedDate: 'July 28, 2025',
-            priority: 'Normal',
-            status: 'Inspected'
-        },
-        {
-            id: 'WO-006',
-            title: 'Emergency Lighting Test',
-            completedDate: 'July 28, 2025',
-            priority: 'Urgent',
-            status: 'Inspected'
-        },
-        {
-            id: 'WO-007',
-            title: 'Boiler Room Inspection',
-            completedDate: 'July 28, 2025',
-            priority: 'Normal',
-            status: 'Inspected'
-        },
-        {
-            id: 'WO-008',
-            title: 'Parking Lot Light Repair',
-            completedDate: 'July 28, 2025',
-            priority: 'Normal',
-            status: 'Inspected'
-        }
-    ];
+    // Fetch technician inspections
+    const { inspections, isLoading } = useTechnicianInspections({ page: 1, perPage: 5 });
 
     const handleViewDetails = (workOrderId) => {
-        console.log('Viewing details for:', workOrderId);
-        // Navigate to inspection details page
         navigate(`/technician/inspection/${workOrderId}`);
     };
+
+   
+    // Mock data for inspected work orders
+    // Status badge helper at component scope
+    const getStatusBadgeClass = (status) => {
+        switch ((status || '').toLowerCase()) {
+            case 'completed':
+            case 'inspected':
+                return 'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800';
+            case 'in progress':
+                return 'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800';
+            case 'incomplete':
+            case 'assigned':
+            default:
+                return 'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800';
+        }
+    };
+
+
+
 
     const handleFilterChange = (field, value) => {
         setFilters(prev => ({
@@ -133,64 +123,51 @@ const Inspection = () => {
 
                     <div className="overflow-hidden">
                         <table className="w-full">
+
                             <thead>
                                 <tr className="border-b border-gray-200">
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                                        Work Order ID
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                                        Title
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                                        Completed Date
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                                        Priority
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                                        Actions
-                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Work order ID</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Customer name</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Completed date</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                                {inspectedOrders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-green-600 font-medium text-sm">
-                                                {order.id}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
-                                                {order.title}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-600">
-                                                {order.completedDate}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {order.priority === 'Urgent' ? (
-                                                <span className="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                                                    {order.priority}
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
-                                                    {order.priority}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <button
-                                                onClick={() => handleViewDetails(order.id)}
-                                                className="text-blue-600 hover:text-blue-700 font-medium text-sm cursor-pointer"
-                                            >
-                                                {order.id === 'WO-004' ? 'View Detail' : 'View Details'}
-                                            </button>
-                                        </td>
+                                {isLoading ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-600">Loading inspections…</td>
                                     </tr>
-                                ))}
+                                ) : inspections.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-600">No inspections found</td>
+                                    </tr>
+                                ) : (
+                                    inspections.map((inspection) => (
+                                        <tr key={inspection.id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-green-600 font-medium text-sm">{inspection.uid}</span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-900">{inspection.customerName || '—'}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-600">{inspection.dateOfCompletion || '—'}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={getStatusBadgeClass(inspection.status)}>{inspection.status || '—'}</span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <button
+                                                    onClick={() => handleViewDetails(inspection.id)}
+                                                    className="text-blue-600 hover:text-blue-700 font-medium text-sm cursor-pointer"
+                                                >
+                                                    View Details
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
