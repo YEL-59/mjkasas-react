@@ -18,6 +18,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Plus, Edit, Trash2, X, User } from 'lucide-react';
+import { useManagerUsers, useCreateManagerUser, useUpdateManagerUser, useDeleteManagerUser } from '@/hooks/manageremplyee.hook';
 
 const Employee = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,59 +41,10 @@ const Employee = () => {
         position: ''
     });
 
-    // Mock employee data
-    const employees = [
-        {
-            id: 1,
-            fullName: 'John Smith',
-            email: 'john.smith@company.com',
-            phone: '+555-0101',
-            employeeId: 'EMP-001',
-            department: 'Construction',
-            position: 'Senior Technician',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
-        },
-        {
-            id: 2,
-            fullName: 'John Smith',
-            email: 'john.smith@company.com',
-            phone: '+555-0101',
-            employeeId: 'EMP-002',
-            department: 'Construction',
-            position: 'Senior Technician',
-            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=32&h=32&fit=crop&crop=face'
-        },
-        {
-            id: 3,
-            fullName: 'John Smith',
-            email: 'john.smith@company.com',
-            phone: '+555-0101',
-            employeeId: 'EMP-003',
-            department: 'Construction',
-            position: 'Senior Technician',
-            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face'
-        },
-        {
-            id: 4,
-            fullName: 'John Smith',
-            email: 'john.smith@company.com',
-            phone: '+555-0101',
-            employeeId: 'EMP-004',
-            department: 'Janitorial',
-            position: 'Janitorial Supervisor',
-            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=32&h=32&fit=crop&crop=face'
-        },
-        {
-            id: 5,
-            fullName: 'John Smith',
-            email: 'john.smith@company.com',
-            phone: '+555-0101',
-            employeeId: 'EMP-005',
-            department: 'Construction',
-            position: 'Senior Technician',
-            avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face'
-        }
-    ];
+    const { employees = [], isLoading } = useManagerUsers({ page: 1, perPage: 15 });
+    const createEmployee = useCreateManagerUser();
+    const updateEmployee = useUpdateManagerUser();
+    const deleteEmployee = useDeleteManagerUser();
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
@@ -110,18 +62,28 @@ const Employee = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Handle form submission
-        console.log('New employee data:', formData);
-        // Reset form
-        setFormData({
-            fullName: '',
-            email: '',
-            phone: '',
-            employeeId: '',
-            department: '',
-            position: ''
-        });
-        setIsModalOpen(false);
+        createEmployee.mutate(
+            {
+                name: formData.fullName,
+                email: formData.email,
+                phone: formData.phone,
+                department: formData.department,
+                position: formData.position,
+            },
+            {
+                onSuccess: () => {
+                    setFormData({
+                        fullName: '',
+                        email: '',
+                        phone: '',
+                        employeeId: '',
+                        department: '',
+                        position: ''
+                    });
+                    setIsModalOpen(false);
+                }
+            }
+        );
     };
 
     const handleEditEmployee = (employeeId) => {
@@ -142,25 +104,41 @@ const Employee = () => {
 
     const handleEditSubmit = (e) => {
         e.preventDefault();
-        // Handle edit form submission - you can call your API here
-        console.log('Updated employee data:', editFormData);
-        console.log('Employee ID being edited:', editingEmployee?.id);
-
-        // Reset form and close modal
-        setEditFormData({
-            fullName: '',
-            email: '',
-            phone: '',
-            employeeId: '',
-            department: '',
-            position: ''
-        });
-        setEditingEmployee(null);
-        setIsEditModalOpen(false);
+        updateEmployee.mutate(
+            {
+                id: editingEmployee?.id,
+                name: editFormData.fullName,
+                email: editFormData.email,
+                phone: editFormData.phone,
+                department: editFormData.department,
+                position: editFormData.position,
+            },
+            {
+                onSuccess: () => {
+                    setEditFormData({
+                        fullName: '',
+                        email: '',
+                        phone: '',
+                        employeeId: '',
+                        department: '',
+                        position: ''
+                    });
+                    setEditingEmployee(null);
+                    setIsEditModalOpen(false);
+                }
+            }
+        );
     };
 
     const handleDeleteEmployee = (employeeId) => {
-        console.log('Delete employee:', employeeId);
+        deleteEmployee.mutate(
+            { id: employeeId },
+            {
+                onSuccess: () => {
+                    // No extra action needed; list will refetch via invalidation
+                }
+            }
+        );
     };
 
     return (
@@ -196,7 +174,7 @@ const Employee = () => {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                                 <Input
-                                    placeholder="Enter Company name"
+                                    placeholder="Enter full name"
                                     value={formData.fullName}
                                     onChange={(e) => handleInputChange('fullName', e.target.value)}
                                     required
@@ -222,18 +200,9 @@ const Employee = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Employee Id</label>
-                                <Input
-                                    placeholder="EMP-001"
-                                    value={formData.employeeId}
-                                    onChange={(e) => handleInputChange('employeeId', e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
                                 <Input
-                                    placeholder="Enter department name"
+                                    placeholder="construction or janitorial"
                                     value={formData.department}
                                     onChange={(e) => handleInputChange('department', e.target.value)}
                                     required
@@ -260,8 +229,9 @@ const Employee = () => {
                                 <Button
                                     type="submit"
                                     className="bg-gray-900 text-white hover:bg-gray-800"
+                                    disabled={createEmployee.isPending}
                                 >
-                                    Add Employee
+                                    {createEmployee.isPending ? 'Adding…' : 'Add Employee'}
                                 </Button>
                             </div>
                         </form>
@@ -283,14 +253,6 @@ const Employee = () => {
                                     >
                                         <X className="h-4 w-4" />
                                     </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setIsEditModalOpen(false)}
-                                        className="h-6 w-6 p-0"
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </Button>
                                 </div>
                             </DialogTitle>
                         </DialogHeader>
@@ -298,7 +260,7 @@ const Employee = () => {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                                 <Input
-                                    placeholder="Enter Company name"
+                                    placeholder="Enter full name"
                                     value={editFormData.fullName}
                                     onChange={(e) => handleEditInputChange('fullName', e.target.value)}
                                     required
@@ -324,18 +286,9 @@ const Employee = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Employee Id</label>
-                                <Input
-                                    placeholder="EMP-001"
-                                    value={editFormData.employeeId}
-                                    onChange={(e) => handleEditInputChange('employeeId', e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
                                 <Input
-                                    placeholder="Enter department name"
+                                    placeholder="construction or janitorial"
                                     value={editFormData.department}
                                     onChange={(e) => handleEditInputChange('department', e.target.value)}
                                     required
@@ -362,8 +315,9 @@ const Employee = () => {
                                 <Button
                                     type="submit"
                                     className="bg-gray-900 text-white hover:bg-gray-800"
+                                    disabled={updateEmployee.isPending}
                                 >
-                                    Update Employee
+                                    {updateEmployee.isPending ? 'Updating…' : 'Update Employee'}
                                 </Button>
                             </div>
                         </form>
@@ -386,55 +340,66 @@ const Employee = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {employees.map((employee) => (
-                            <TableRow key={employee.id} className="hover:bg-gray-50">
-                                <TableCell>
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                                            {employee.avatar ? (
-                                                <img
-                                                    src={employee.avatar}
-                                                    alt={employee.fullName}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <User className="h-4 w-4 text-gray-500" />
-                                            )}
-                                        </div>
-                                        <span className="font-medium text-gray-900">{employee.fullName}</span>
-                                    </div>
-                                </TableCell>
-                                <TableCell className="text-gray-600">{employee.email}</TableCell>
-                                <TableCell className="text-gray-600">{employee.phone}</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary" className="bg-gray-100 text-gray-800">
-                                        {employee.employeeId}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-gray-600">{employee.department}</TableCell>
-                                <TableCell className="text-gray-600">{employee.position}</TableCell>
-                                <TableCell>
-                                    <div className="flex items-center space-x-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleEditEmployee(employee.id)}
-                                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDeleteEmployee(employee.id)}
-                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </TableCell>
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center text-gray-600 py-6">Loading employees…</TableCell>
                             </TableRow>
-                        ))}
+                        ) : employees.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center text-gray-600 py-6">No employees found</TableCell>
+                            </TableRow>
+                        ) : (
+                            employees.map((employee) => (
+                                <TableRow key={employee.id} className="hover:bg-gray-50">
+                                    <TableCell>
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                                {employee.avatar ? (
+                                                    <img
+                                                        src={employee.avatar}
+                                                        alt={employee.fullName}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <User className="h-4 w-4 text-gray-500" />
+                                                )}
+                                            </div>
+                                            <span className="font-medium text-gray-900">{employee.fullName}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-gray-600">{employee.email}</TableCell>
+                                    <TableCell className="text-gray-600">{employee.phone}</TableCell>
+                                    <TableCell>
+                                        <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+                                            {employee.employeeId}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-gray-600">{employee.department}</TableCell>
+                                    <TableCell className="text-gray-600">{employee.position}</TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center space-x-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleEditEmployee(employee.id)}
+                                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleDeleteEmployee(employee.id)}
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                disabled={deleteEmployee.isPending}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
                     </TableBody>
                 </Table>
             </div>
