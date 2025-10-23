@@ -6,7 +6,7 @@ const axiosPublic = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-  timeout: 5000,
+  timeout: 8000,
 });
 
 const axiosPrivate = axios.create({

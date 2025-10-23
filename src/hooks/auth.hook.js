@@ -12,7 +12,7 @@ import {
   otpVerificationSchema,
   resendOtpSchema,
 } from "@/schemas/auth.schemas";
-import { axiosPrivate, axiosPublic } from "@/lib/axios.config";
+import { axiosPublic } from "@/lib/axios.config";
 import { useUser } from "@/context/UserContext";
 
 // SignUp Hook - Role-based API calls
@@ -246,13 +246,18 @@ export const useResendOtp = (email) => {
     resolver: zodResolver(resendOtpSchema),
     defaultValues: {
       email: email || "",
+      // For password reset flow, backend expects operation = "password"
       operation: "password",
     },
   });
 
   const { mutate, isPending, isError } = useMutation({
     mutationFn: async (data) => {
-      const res = await axiosPublic.post("/auth/forget-password/otp-resend", data);
+      // Use the same endpoint as initial forgot-password OTP send
+      const res = await axiosPublic.post(
+        "/auth/forget-password/otp-send",
+        data
+      );
       return res.data;
     },
     onSuccess: (data) => {
@@ -263,7 +268,11 @@ export const useResendOtp = (email) => {
       }
     },
     onError: (error) => {
-      const message = error?.response?.data?.message || error.message || "Failed to resend OTP";
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error.message ||
+        "Failed to resend OTP";
       toast.error(message);
     },
   });
@@ -274,16 +283,18 @@ export const useResendOtp = (email) => {
 // Reset Password Hook
 export const useResetPassword = (email) => {
   const navigate = useNavigate();
-  
+
   // Create a schema for reset password validation
-  const resetPasswordSchema = z.object({
-    email: z.string().email("Invalid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    password_confirmation: z.string()
-  }).refine((data) => data.password === data.password_confirmation, {
-    message: "Passwords don't match",
-    path: ["password_confirmation"],
-  });
+  const resetPasswordSchema = z
+    .object({
+      email: z.string().email("Invalid email address"),
+      password: z.string().min(8, "Password must be at least 8 characters"),
+      password_confirmation: z.string(),
+    })
+    .refine((data) => data.password === data.password_confirmation, {
+      message: "Passwords don't match",
+      path: ["password_confirmation"],
+    });
 
   const form = useForm({
     resolver: zodResolver(resetPasswordSchema),
@@ -296,7 +307,10 @@ export const useResetPassword = (email) => {
 
   const { mutate, isPending, isError } = useMutation({
     mutationFn: async (data) => {
-      const res = await axiosPublic.post("/auth/forget-password/reset-password", data);
+      const res = await axiosPublic.post(
+        "/auth/forget-password/reset-password",
+        data
+      );
       return res.data;
     },
     onSuccess: (data) => {
@@ -309,7 +323,8 @@ export const useResetPassword = (email) => {
     },
     onError: (error) => {
       const responseData = error?.response?.data;
-      const message = responseData?.message || error.message || "Failed to reset password";
+      const message =
+        responseData?.message || error.message || "Failed to reset password";
 
       if (responseData?.error?.password) {
         form.setError("password", { message: responseData.error.password[0] });

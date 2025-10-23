@@ -39,7 +39,8 @@ const OtpVerification = () => {
 
   // Handle resend OTP
   const handleResendOtp = () => {
-    resendOtp({ email, operation: "email" });
+    // Use password reset resend endpoint
+    resendOtp({ email, operation: "password" });
     setCountdown(120); // Reset countdown
     setCanResend(false);
   };
