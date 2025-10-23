@@ -127,12 +127,29 @@ export const useUpdateWorkHour = () => {
 export const useCompleteWorkOrder = () => {
   return useMutation({
     mutationFn: async ({ workOrderId, signatureFile, complete_note }) => {
+      // Debug logging
+      console.log("Complete work order - received values:", {
+        workOrderId,
+        signatureFile: signatureFile ? "File present" : "No file",
+        complete_note,
+      });
+
       const form = new FormData();
+      // Add _method field for Laravel API compatibility
+      form.append("_method", "PATCH");
       if (signatureFile) form.append("signature", signatureFile);
       // Always append complete_note; backend requires the field
       form.append("complete_note", String(complete_note ?? ""));
+      
+      // Debug FormData contents
+      console.log("FormData contents for work order completion:");
+      for (let [key, value] of form.entries()) {
+        console.log(`${key}:`, value);
+      }
+      
       // Let axios set proper multipart boundaries automatically
-      const res = await axiosPrivate.patch(
+      // Try POST with _method=PATCH for Laravel compatibility
+      const res = await axiosPrivate.post(
         `/technician/work-order/${workOrderId}/complete`,
         form
       );

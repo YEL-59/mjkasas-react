@@ -309,6 +309,13 @@ const WorkOrderDetailsPage = () => {
       return;
     }
     console.log("Submitting completion", { workOrderId: id, note, hasSignature: !!signatureFile });
+    console.log("Form data being sent:", {
+      workOrderId: id,
+      signatureFile: signatureFile ? `File: ${signatureFile.name}, Size: ${signatureFile.size}` : "No file",
+      complete_note: note,
+      noteLength: note.length
+    });
+
     // Complete work order: send signature image and completion note
     completeWorkOrder(
       { workOrderId: id, signatureFile, complete_note: note },
