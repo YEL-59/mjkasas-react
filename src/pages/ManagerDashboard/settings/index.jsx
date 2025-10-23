@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Edit, User } from 'lucide-react';
+import { useManagerAuthUser, useUpdateManagerAuthUser, useUpdateManagerPassword } from '@/hooks/managerProfile.hook';
 
 const Settings = () => {
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
+    const [avatarFile, setAvatarFile] = useState(null);
+
+    const { user, isLoading: authLoading } = useManagerAuthUser();
+    const updateProfile = useUpdateManagerAuthUser();
+    const updatePassword = useUpdateManagerPassword();
+
     const [personalInfo, setPersonalInfo] = useState({
         fullName: 'John Doe',
         phone: '+1 (555) 123-4567',
@@ -18,6 +25,18 @@ const Settings = () => {
         newPassword: '',
         confirmPassword: ''
     });
+
+    // Hydrate form with auth user data
+    useEffect(() => {
+        if (user) {
+            setPersonalInfo(prev => ({
+                ...prev,
+                fullName: user.name || '',
+                phone: user.phone || '',
+                email: user.email || ''
+            }));
+        }
+    }, [user]);
 
     const handlePersonalInfoChange = (field, value) => {
         setPersonalInfo(prev => ({
@@ -35,18 +54,34 @@ const Settings = () => {
 
     const handleUpdatePassword = (e) => {
         e.preventDefault();
-        console.log('Password update data:', passwordData);
-        // Handle password update logic here
-        setPasswordData({
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-        });
+        updatePassword.mutate(
+            {
+                old_password: passwordData.currentPassword,
+                new_password: passwordData.newPassword,
+                new_password_confirmation: passwordData.confirmPassword,
+            },
+            {
+                onSuccess: () => {
+                    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                }
+            }
+        );
     };
 
     const handleSavePersonalInfo = () => {
-        console.log('Personal info updated:', personalInfo);
-        setIsEditing(false);
+        updateProfile.mutate(
+            {
+                name: personalInfo.fullName,
+                email: personalInfo.email,
+                phone: personalInfo.phone,
+                avatarFile,
+            },
+            {
+                onSuccess: () => {
+                    setIsEditing(false);
+                }
+            }
+        );
     };
 
     return (
@@ -86,7 +121,16 @@ const Settings = () => {
                         <div className="w-24 h-24 bg-blue-200 rounded-full flex items-center justify-center mb-4">
                             <User className="h-12 w-12 text-blue-600" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900">Esther Howard</h3>
+                        <h3 className="text-lg font-medium text-gray-900">{personalInfo.fullName || user?.name || '—'}</h3>
+                        {isEditing && (
+                            <div className="mt-4">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Personal Info Form - Two Columns */}
@@ -96,7 +140,7 @@ const Settings = () => {
                             <Input
                                 value={personalInfo.fullName}
                                 onChange={(e) => handlePersonalInfoChange('fullName', e.target.value)}
-                                disabled={!isEditing}
+                                disabled={!isEditing || authLoading}
                                 className="bg-gray-50 border-gray-300"
                             />
                         </div>
@@ -105,7 +149,7 @@ const Settings = () => {
                             <Input
                                 value={personalInfo.phone}
                                 onChange={(e) => handlePersonalInfoChange('phone', e.target.value)}
-                                disabled={!isEditing}
+                                disabled={!isEditing || authLoading}
                                 className="bg-gray-50 border-gray-300"
                             />
                         </div>
@@ -114,7 +158,7 @@ const Settings = () => {
                             <Input
                                 value={personalInfo.email}
                                 onChange={(e) => handlePersonalInfoChange('email', e.target.value)}
-                                disabled={!isEditing}
+                                disabled={!isEditing || authLoading}
                                 className="bg-gray-50 border-gray-300"
                             />
                         </div>
@@ -123,7 +167,7 @@ const Settings = () => {
                             <Input
                                 value={personalInfo.position}
                                 onChange={(e) => handlePersonalInfoChange('position', e.target.value)}
-                                disabled={!isEditing}
+                                disabled={true}
                                 className="bg-gray-50 border-gray-300"
                             />
                         </div>
@@ -135,8 +179,9 @@ const Settings = () => {
                             <Button
                                 onClick={handleSavePersonalInfo}
                                 className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg"
+                                disabled={updateProfile.isPending}
                             >
-                                Save Changes
+                                {updateProfile.isPending ? 'Saving...' : 'Save Changes'}
                             </Button>
                         </div>
                     )}
@@ -185,8 +230,9 @@ const Settings = () => {
                             <Button
                                 type="submit"
                                 className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 rounded-lg"
+                                disabled={updatePassword.isPending}
                             >
-                                Update password
+                                {updatePassword.isPending ? 'Updating...' : 'Update password'}
                             </Button>
                         </div>
                     </form>
