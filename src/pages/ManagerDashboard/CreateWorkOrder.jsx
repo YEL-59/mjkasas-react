@@ -96,7 +96,7 @@ export default function CreateWorkOrder({ initialValues, onSubmit: customSubmit,
         if (customSubmit) {
             await customSubmit(data);
         } else {
-            mutate(data);
+            mutate({ values: data, photos: beforePhotos });
         }
     };
 
@@ -608,10 +608,11 @@ export default function CreateWorkOrder({ initialValues, onSubmit: customSubmit,
 
                     {/* Submit Button */}
                     <div className="flex justify-end pt-6">
-                        <Button 
-                            type="submit" 
-                            disabled={isPending} 
-                            className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-2"
+                        <Button
+                            type="submit"
+                            disabled={isPending}
+                            className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-2" check the hook and component
+
                         >
                             {isPending ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Work Order' : 'Create Work Order')}
                         </Button>

@@ -36,4 +36,21 @@ axiosPrivate.interceptors.request.use(
   }
 );
 
+// Add response interceptor to handle 401 errors
+axiosPrivate.interceptors.response.use(
+  function (response) {
+    return response;
+  },
+  function (error) {
+    if (error.response?.status === 401) {
+      // Token is invalid or expired
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      // Redirect to login page
+      window.location.href = "/auth/sign-in";
+    }
+    return Promise.reject(error);
+  }
+);
+
 export { axiosPrivate, axiosPublic };
