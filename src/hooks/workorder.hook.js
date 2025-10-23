@@ -215,6 +215,37 @@ export const useDeleteWorkOrder = () => {
   });
 };
 
+// Upload before images for a work order
+export const useUploadBeforeImage = () => {
+  return useMutation({
+    mutationFn: async ({ workOrderId, image, note }) => {
+      const form = new FormData();
+      if (image) form.append("image", image);
+      if (note != null) form.append("note", note);
+      const res = await axiosPrivate.post(
+        `/manager/work-order/${workOrderId}/upload-image/before`,
+        form,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return res.data;
+    },
+  });
+};
+
+// Delete a gallery image by id
+export const useDeleteGalleryImage = () => {
+  return useMutation({
+    mutationFn: async ({ imageId }) => {
+      const res = await axiosPrivate.delete(
+        `/manager/work-order/image/${imageId}/delete`
+      );
+      return res.data;
+    },
+  });
+};
+
 // Completed orders: fetch manager completed work orders
 export const useManagerCompletedOrders = ({ page = 1, perPage = 5, enabled = true }) => {
   const query = useQuery({

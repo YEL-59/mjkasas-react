@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { useCreateWorkOrder } from '@/hooks/workorder.hook';
+import { useCreateWorkOrder, useUploadBeforeImage, useDeleteGalleryImage } from '@/hooks/workorder.hook';
 import { axiosPrivate } from '@/lib/axios.config';
 
 // Zod schema for form validation
@@ -60,6 +60,8 @@ export default function CreateWorkOrder({ initialValues, onSubmit: customSubmit,
     const [technicianDisplay, setTechnicianDisplay] = useState('');
 
     const { mutate, isPending } = useCreateWorkOrder();
+    const { mutate: uploadBeforeImage, isPending: isUploadingBefore } = useUploadBeforeImage();
+    const { mutate: deleteGalleryImage, isPending: isDeletingImage } = useDeleteGalleryImage();
 
     const {
         register,
@@ -143,6 +145,71 @@ export default function CreateWorkOrder({ initialValues, onSubmit: customSubmit,
     const removePhoto = (index) => {
         const newPhotos = beforePhotos.filter((_, i) => i !== index);
         setBeforePhotos(newPhotos);
+    };
+
+    // Upload before photo to server
+    const uploadBeforePhoto = (photo, workOrderId) => {
+        console.log("Upload before photo called:", { photo, workOrderId });
+
+        if (!photo?.file) {
+            console.error("No file found in photo");
+            return;
+        }
+
+        if (!workOrderId) {
+            console.error("No work order ID provided");
+            return;
+        }
+
+        uploadBeforeImage(
+            { workOrderId, image: photo.file, note: photo.description },
+            {
+                onSuccess: (res) => {
+                    console.log("Upload success:", res);
+                    const server = res?.data;
+                    const url = server?.image_path;
+                    const serverId = server?.id;
+                    if (url) {
+                        setBeforePhotos((prev) =>
+                            prev.map((p) =>
+                                p === photo
+                                    ? { ...p, preview: url, file: null, id: serverId ?? p.id }
+                                    : p
+                            )
+                        );
+                    }
+                },
+                onError: (e) => {
+                    console.error("Failed to upload before photo", e);
+                },
+            }
+        );
+    };
+
+    // Delete before photo from server
+    const handleRemoveBefore = (photo) => {
+        const isServerPhoto =
+            !photo.file &&
+            typeof photo.preview === "string" &&
+            photo.preview.length > 0;
+        const imageId = Number(photo.id);
+
+        if (isServerPhoto && Number.isFinite(imageId)) {
+            deleteGalleryImage(
+                { imageId },
+                {
+                    onSuccess: () => {
+                        setBeforePhotos((prev) => prev.filter((p) => p.id !== photo.id));
+                    },
+                    onError: (e) => {
+                        console.error("Failed to delete image", e);
+                    },
+                }
+            );
+        } else {
+            // Local-only photo: just remove from state
+            setBeforePhotos((prev) => prev.filter((p) => p !== photo));
+        }
     };
 
     const clearSignature = () => {
@@ -516,9 +583,23 @@ export default function CreateWorkOrder({ initialValues, onSubmit: customSubmit,
                                             className="w-full border-l-2 border-dashed border-gray-300 pl-3"
                                         />
                                     </div>
-                                    <div className="flex items-center gap-2 text-red-500 cursor-pointer" onClick={() => removePhoto(index)}>
-                                        <X className="h-4 w-4" />
-                                        <span className="text-sm">Remove</span>
+                                    <div className="flex items-center gap-2">
+                                        {photo.file && isEdit && initialValues?.id && (
+                                            <Button
+                                                type="button"
+                                                variant="default"
+                                                size="sm"
+                                                onClick={() => uploadBeforePhoto(photo, initialValues.id)}
+                                                disabled={isUploadingBefore}
+                                                className="mr-2"
+                                            >
+                                                {isUploadingBefore ? "Uploading..." : "Upload"}
+                                            </Button>
+                                        )}
+                                        <div className="flex items-center gap-2 text-red-500 cursor-pointer" onClick={() => handleRemoveBefore(photo)}>
+                                            <X className="h-4 w-4" />
+                                            <span className="text-sm">Remove</span>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
