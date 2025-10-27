@@ -16,17 +16,20 @@ export const useTechnicianAuthUser = ({ enabled = true } = {}) => {
   return { ...query, user };
 };
 
-// PUT: /api/v1/technician/user/auth (multipart for avatar)
+// POST + _method=PUT: /api/v1/technician/user/auth (multipart for avatar)
 export const useUpdateTechnicianAuthUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ name, email, phone, avatarFile }) => {
       const form = new FormData();
+      // Use method override to ensure backend parses multipart correctly
+      form.append("_method", "PUT");
       if (name != null) form.append("name", name);
       if (email != null) form.append("email", email);
       if (phone != null) form.append("phone", phone);
       if (avatarFile) form.append("avatar", avatarFile);
-      const res = await axiosPrivate.put("/technician/user/auth", form);
+      // Send as POST to align with backend expectations
+      const res = await axiosPrivate.post("/technician/user/auth", form);
       return res.data;
     },
     onSuccess: (data) => {

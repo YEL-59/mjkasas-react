@@ -1,38 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Calendar, Camera, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useTechnicianInspectionDetails, useCompleteInspection } from '@/hooks/techinicianinspection.hook.js';
 
 const InspectionDetailsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
+    const { details, isLoading } = useTechnicianInspectionDetails({ id });
+    const { mutate: completeInspection, isPending: isCompleting } = useCompleteInspection();
     const [formData, setFormData] = useState({
-        customerName: 'Richard',
-        buildingName: 'Richard',
-        contactName: 'Richard',
+        customerName: '',
+        buildingName: '',
+        contactName: '',
         inspectorName: '',
         assigneeName: '',
         dateOfInspection: '',
         dateOfCompletion: ''
     });
     const [completionNote, setCompletionNote] = useState('');
-    const [beforePhotos, setBeforePhotos] = useState([
-        {
-            id: 1,
-            image: '/api/placeholder/400/300',
-            description: 'Broken window with visible crack. Requires immediate replacement.'
-        }
-    ]);
-    const [afterPhotos, setAfterPhotos] = useState([
-        {
-            id: 1,
-            image: '/api/placeholder/400/300',
-            description: ''
-        }
-    ]);
+    const [beforePhotos, setBeforePhotos] = useState([]);
+    const [afterPhotos, setAfterPhotos] = useState([]);
+
+    useEffect(() => {
+        if (!details) return;
+        setFormData({
+            customerName: details.customerName || '',
+            buildingName: details?.building?.name || '',
+            contactName: details?.building?.contactName || '',
+            inspectorName: details?.inspector?.name || '',
+            assigneeName: details?.technician?.name || '',
+            dateOfInspection: details?.dateOfInspection || '',
+            dateOfCompletion: details?.dateOfCompletion || ''
+        });
+        setCompletionNote(details?.completeNote || '');
+        setBeforePhotos(Array.isArray(details?.beforePhotos) ? details.beforePhotos : []);
+        setAfterPhotos(Array.isArray(details?.afterPhotos) ? details.afterPhotos : []);
+    }, [details]);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
@@ -98,14 +105,10 @@ const InspectionDetailsPage = () => {
     };
 
     const handleCompleteInspection = () => {
-        console.log('Completing inspection:', {
-            formData,
-            completionNote,
-            beforePhotos,
-            afterPhotos
-        });
-        // Navigate back to inspection list
-        navigate('/technician/inspection');
+        completeInspection(
+            { inspectionId: id, complete_note: completionNote },
+            { onSuccess: () => navigate('/technician/inspection') }
+        );
     };
 
     return (
@@ -303,9 +306,10 @@ const InspectionDetailsPage = () => {
             <div className="flex justify-end">
                 <Button
                     onClick={handleCompleteInspection}
+                    disabled={isCompleting}
                     className="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3"
                 >
-                    Complete Inspection
+                    {isCompleting ? 'Completing…' : 'Complete Inspection'}
                 </Button>
             </div>
         </div>
